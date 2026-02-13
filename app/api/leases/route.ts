@@ -55,7 +55,7 @@ export async function POST(req: Request) {
     }
 
     // Create lease and update unit status in a transaction
-    const lease = await db.$transaction(async (tx) => {
+    const lease = await db.$transaction(async (tx: any) => {
       // Create the lease
       const newLease = await tx.lease.create({
         data: {
