@@ -1,8 +1,37 @@
 @import "tailwindcss";
 
 :root {
+  /* Stripe-inspired color palette */
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #0a2540;
+
+  /* Primary colors */
+  --primary: #635bff;
+  --primary-hover: #0a2540;
+
+  /* Neutrals */
+  --gray-50: #f7fafc;
+  --gray-100: #edf2f7;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e0;
+  --gray-400: #a0aec0;
+  --gray-500: #718096;
+  --gray-600: #4a5568;
+  --gray-700: #2d3748;
+  --gray-800: #1a202c;
+  --gray-900: #0a2540;
+
+  /* Semantic colors */
+  --success: #00d4aa;
+  --error: #df1b41;
+  --warning: #f5a623;
+
+  /* Borders and shadows */
+  --border-color: #e3e8ef;
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 @theme inline {
@@ -12,15 +41,68 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
 }
 
 body {
-  background: var(--background);
+  background: var(--gray-50);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+}
+
+/* Smooth transitions for interactive elements */
+button, a, input, select, textarea {
+  transition: all 0.15s ease-in-out;
+}
+
+/* Focus styles */
+*:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Select and textarea styling to match inputs */
+select, textarea {
+  border: 2px solid #e3e8ef !important;
+  border-radius: 0.5rem !important;
+  padding: 0.625rem 1rem !important;
+  font-size: 0.875rem !important;
+  font-weight: 500 !important;
+  color: #0a2540 !important;
+  background-color: white !important;
+  transition: all 0.15s ease-in-out !important;
+  display: block !important;
+  width: 100% !important;
+}
+
+select:hover, textarea:hover {
+  border-color: #cbd5e0 !important;
+}
+
+select:focus, textarea:focus {
+  outline: none !important;
+  border-color: #635bff !important;
+  box-shadow: 0 0 0 2px rgba(99, 91, 255, 0.1) !important;
+}
+
+select:disabled, textarea:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+  background-color: #f7fafc !important;
+}
+
+select::placeholder, textarea::placeholder {
+  color: #a0aec0 !important;
+  font-weight: 400 !important;
+}
+
+/* Label styling */
+label {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: #2d3748 !important;
 }

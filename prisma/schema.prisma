@@ -1,0 +1,241 @@
+// Orca Property Management System - Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// User model - Landlords and Property Managers
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String
+  phone         String?
+  country       String    @default("NG") // NG, GB, NO
+  currency      String    @default("NGN") // NGN, GBP, NOK
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  properties    Property[]
+  expenses      Expense[]
+
+  @@map("users")
+}
+
+// Property model - Buildings/Houses
+model Property {
+  id            String    @id @default(cuid())
+  name          String
+  address       String
+  city          String
+  state         String?
+  country       String
+  postalCode    String?
+  propertyType  PropertyType @default(APARTMENT)
+  description   String?
+  image         String?   // URL to property image
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  units         Unit[]
+  expenses      Expense[]
+
+  @@map("properties")
+}
+
+enum PropertyType {
+  APARTMENT
+  HOUSE
+  CONDO
+  DUPLEX
+  STUDIO
+  TOWNHOUSE
+}
+
+// Unit model - Individual rentable units within a property
+model Unit {
+  id            String    @id @default(cuid())
+  name          String    // e.g., "Unit 1A", "Ground Floor"
+  bedrooms      Int       @default(1)
+  bathrooms     Int       @default(1)
+  squareFeet    Int?
+  monthlyRent   Float
+  deposit       Float     @default(0)
+  status        UnitStatus @default(VACANT)
+  description   String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  propertyId    String
+  property      Property  @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  leases        Lease[]
+  maintenanceRequests MaintenanceRequest[]
+
+  @@map("units")
+}
+
+enum UnitStatus {
+  VACANT
+  OCCUPIED
+  MAINTENANCE
+}
+
+// Tenant model
+model Tenant {
+  id            String    @id @default(cuid())
+  firstName     String
+  lastName      String
+  email         String    @unique
+  phone         String
+  alternatePhone String?
+  emergencyContact String?
+  emergencyPhone String?
+  idType        String?   // e.g., "National ID", "Passport"
+  idNumber      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  leases        Lease[]
+
+  @@map("tenants")
+}
+
+// Lease model - Rental agreements
+model Lease {
+  id            String    @id @default(cuid())
+  startDate     DateTime
+  endDate       DateTime
+  monthlyRent   Float
+  deposit       Float
+  status        LeaseStatus @default(ACTIVE)
+  terms         String?   // Lease terms and conditions
+  documents     String[]  // URLs to uploaded lease documents
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  unitId        String
+  unit          Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  payments      Payment[]
+
+  @@map("leases")
+}
+
+enum LeaseStatus {
+  ACTIVE
+  EXPIRED
+  TERMINATED
+  PENDING
+}
+
+// Payment model - Rent payments
+model Payment {
+  id            String    @id @default(cuid())
+  amount        Float
+  dueDate       DateTime
+  paidDate      DateTime?
+  status        PaymentStatus @default(PENDING)
+  paymentMethod String?   // e.g., "Bank Transfer", "Cash", "Paystack"
+  reference     String?   // Payment reference/transaction ID
+  lateFee       Float     @default(0)
+  notes         String?
+  receiptUrl    String?   // URL to generated receipt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  leaseId       String
+  lease         Lease     @relation(fields: [leaseId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  PARTIAL
+  CANCELLED
+}
+
+// Expense model - Property expenses
+model Expense {
+  id            String    @id @default(cuid())
+  amount        Float
+  category      ExpenseCategory
+  description   String
+  date          DateTime
+  vendor        String?
+  receiptUrl    String?   // URL to receipt/invoice
+  notes         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  propertyId    String?
+  property      Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
+
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
+}
+
+enum ExpenseCategory {
+  MAINTENANCE
+  REPAIRS
+  UTILITIES
+  INSURANCE
+  TAXES
+  MANAGEMENT_FEES
+  CLEANING
+  LANDSCAPING
+  LEGAL
+  ADVERTISING
+  OTHER
+}
+
+// Maintenance Request model
+model MaintenanceRequest {
+  id            String    @id @default(cuid())
+  title         String
+  description   String
+  priority      Priority  @default(MEDIUM)
+  status        MaintenanceStatus @default(OPEN)
+  category      String?   // e.g., "Plumbing", "Electrical", "General"
+  images        String[]  // URLs to uploaded images
+  cost          Float?
+  notes         String?
+  reportedDate  DateTime  @default(now())
+  resolvedDate  DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  unitId        String
+  unit          Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@map("maintenance_requests")
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MaintenanceStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
