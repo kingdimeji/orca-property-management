@@ -44,7 +44,7 @@ export default async function DashboardLayout({
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {navigation.map((item) => {
+            {navigation.map((item: any) => {
               const Icon = item.icon
               return (
                 <Link

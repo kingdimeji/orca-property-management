@@ -67,8 +67,8 @@ export default async function TenantDetailsPage({
     },
   })
 
-  const activeLeases = tenant.leases.filter((l) => l.status === "ACTIVE")
-  const pastLeases = tenant.leases.filter((l) => l.status !== "ACTIVE")
+  const activeLeases = tenant.leases.filter((l: any) => l.status === "ACTIVE")
+  const pastLeases = tenant.leases.filter((l: any) => l.status !== "ACTIVE")
 
   return (
     <div>
@@ -180,7 +180,7 @@ export default async function TenantDetailsPage({
       {activeLeases.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Active Lease</h2>
-          {activeLeases.map((lease) => (
+          {activeLeases.map((lease: any) => (
             <Card key={lease.id} className="border-green-200 bg-green-50">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -234,7 +234,7 @@ export default async function TenantDetailsPage({
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Lease History</h2>
           <div className="space-y-4">
-            {pastLeases.map((lease) => (
+            {pastLeases.map((lease: any) => (
               <Card key={lease.id}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between text-lg">

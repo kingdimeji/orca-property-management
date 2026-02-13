@@ -30,7 +30,7 @@ export default function CreateLeaseButton({
   const [error, setError] = useState("")
   const [selectedUnitId, setSelectedUnitId] = useState("")
 
-  const selectedUnit = units.find((u) => u.id === selectedUnitId)
+  const selectedUnit = units.find((u: any) => u.id === selectedUnitId)
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -105,7 +105,7 @@ export default function CreateLeaseButton({
               disabled={isLoading}
             >
               <option value="">Choose a unit...</option>
-              {units.map((unit) => (
+              {units.map((unit: any) => (
                 <option key={unit.id} value={unit.id}>
                   {unit.property.name} - {unit.name}
                 </option>
