@@ -132,7 +132,7 @@ export default async function PropertyDetailsPage({
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {property.units.map((unit) => (
+          {property.units.map((unit: any) => (
             <Card key={unit.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
