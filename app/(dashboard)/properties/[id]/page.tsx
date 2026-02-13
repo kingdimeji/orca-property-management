@@ -39,8 +39,8 @@ export default async function PropertyDetailsPage({
     notFound()
   }
 
-  const vacantUnits = property.units.filter((u) => u.status === "VACANT").length
-  const occupiedUnits = property.units.filter((u) => u.status === "OCCUPIED").length
+  const vacantUnits = property.units.filter((u: { status: string }) => u.status === "VACANT").length
+  const occupiedUnits = property.units.filter((u: { status: string }) => u.status === "OCCUPIED").length
 
   return (
     <div>
