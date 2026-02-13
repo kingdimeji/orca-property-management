@@ -47,7 +47,7 @@ export default async function TenantDetailsPage({
 
   // Verify user owns at least one property related to this tenant's leases
   const hasAccess = tenant.leases.some(
-    (lease) => lease.unit.property.userId === session.user.id
+    (lease: any) => lease.unit.property.userId === session.user.id
   )
 
   if (!hasAccess && tenant.leases.length > 0) {
