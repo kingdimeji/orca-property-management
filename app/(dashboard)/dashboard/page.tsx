@@ -48,10 +48,10 @@ export default async function DashboardPage() {
   ])
 
   const totalRevenue = payments
-    .filter((p) => p.status === "PAID")
-    .reduce((sum, p) => sum + p.amount, 0)
+    .filter((p: { status: string; amount: number }) => p.status === "PAID")
+    .reduce((sum: number, p: { status: string; amount: number }) => sum + p.amount, 0)
 
-  const pendingPayments = payments.filter((p) => p.status === "PENDING" || p.status === "OVERDUE").length
+  const pendingPayments = payments.filter((p: { status: string; amount: number }) => p.status === "PENDING" || p.status === "OVERDUE").length
 
   const stats = [
     {
