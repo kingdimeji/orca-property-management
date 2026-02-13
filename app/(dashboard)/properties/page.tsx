@@ -62,7 +62,7 @@ export default async function PropertiesPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property) => (
+          {properties.map((property: any) => (
             <Link key={property.id} href={`/properties/${property.id}`}>
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                 {property.image && (
