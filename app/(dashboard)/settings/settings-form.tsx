@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 
 interface User {
   id: string
-  name: string
+  name: string | null
   email: string
   phone: string | null
   country: string
@@ -115,7 +115,7 @@ export default function SettingsForm({ user }: SettingsFormProps) {
               id="name"
               name="name"
               type="text"
-              defaultValue={user.name}
+              defaultValue={user.name || ""}
               required
             />
           </div>
