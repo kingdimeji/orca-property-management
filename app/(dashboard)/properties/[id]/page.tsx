@@ -7,6 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Plus, MapPin, Home } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import AddUnitButton from "./add-unit-button"
+import EditPropertyButton from "./edit-property-button"
+import EditUnitButton from "./edit-unit-button"
+import DeletePropertyButton from "./delete-property-button"
+import DeleteUnitButton from "./delete-unit-button"
 import type { PropertyWithUnits } from "@/types/prisma"
 
 export default async function PropertyDetailsPage({
@@ -66,9 +70,13 @@ export default async function PropertyDetailsPage({
               </span>
             </div>
           </div>
-          <span className="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-full">
-            {property.propertyType}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="px-3 py-1 text-sm font-medium text-blue-700 bg-blue-100 rounded-full">
+              {property.propertyType}
+            </span>
+            <EditPropertyButton property={property} />
+            <DeletePropertyButton property={property} />
+          </div>
         </div>
 
         {property.description && (
@@ -177,6 +185,10 @@ export default async function PropertyDetailsPage({
                     {unit.description}
                   </p>
                 )}
+                <div className="pt-3 border-t flex gap-2">
+                  <EditUnitButton unit={unit} />
+                  <DeleteUnitButton unit={unit} />
+                </div>
               </CardContent>
             </Card>
           ))}

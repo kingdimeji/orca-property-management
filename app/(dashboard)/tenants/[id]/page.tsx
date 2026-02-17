@@ -4,9 +4,12 @@ import { redirect, notFound } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Mail, Phone, User, FileText, Calendar } from "lucide-react"
+import { ArrowLeft, Mail, Phone, User, FileText, Calendar, Edit } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import CreateLeaseButton from "./create-lease-button"
+import EditLeaseButton from "./edit-lease-button"
+import DeleteTenantButton from "./delete-tenant-button"
+import DeleteLeaseButton from "./delete-lease-button"
 import type { TenantWithLeases, UnitWithProperty } from "@/types/prisma"
 
 export default async function TenantDetailsPage({
@@ -99,9 +102,18 @@ export default async function TenantDetailsPage({
               </div>
             </div>
           </div>
-          {activeLeases.length === 0 && availableUnits.length > 0 && (
-            <CreateLeaseButton tenantId={tenant.id} units={availableUnits} />
-          )}
+          <div className="flex gap-2">
+            <Link href={`/tenants/${tenant.id}/edit`}>
+              <Button size="sm">
+                <Edit className="w-4 h-4 mr-2" />
+                Edit
+              </Button>
+            </Link>
+            <DeleteTenantButton tenant={tenant} />
+            {activeLeases.length === 0 && availableUnits.length > 0 && (
+              <CreateLeaseButton tenantId={tenant.id} units={availableUnits} />
+            )}
+          </div>
         </div>
       </div>
 
@@ -224,6 +236,10 @@ export default async function TenantDetailsPage({
                     <p className="mt-1 text-sm">{lease.terms}</p>
                   </div>
                 )}
+                <div className="pt-3 border-t flex gap-2">
+                  <EditLeaseButton lease={lease} />
+                  <DeleteLeaseButton lease={lease} />
+                </div>
               </CardContent>
             </Card>
           ))}
@@ -256,7 +272,7 @@ export default async function TenantDetailsPage({
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 gap-4 text-sm">
+                  <div className="grid grid-cols-3 gap-4 text-sm mb-3">
                     <div>
                       <span className="text-gray-600">Rent:</span>
                       <p className="font-medium">
@@ -271,6 +287,10 @@ export default async function TenantDetailsPage({
                       <span className="text-gray-600">End:</span>
                       <p className="font-medium">{formatDate(lease.endDate)}</p>
                     </div>
+                  </div>
+                  <div className="pt-3 border-t flex gap-2">
+                    <EditLeaseButton lease={lease} />
+                    <DeleteLeaseButton lease={lease} />
                   </div>
                 </CardContent>
               </Card>
