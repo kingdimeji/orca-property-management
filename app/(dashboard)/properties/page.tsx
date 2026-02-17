@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Plus, MapPin } from "lucide-react"
+import type { PropertyWithUnits } from "@/types/prisma"
 
 export default async function PropertiesPage() {
   const session = await auth()
@@ -13,7 +14,7 @@ export default async function PropertiesPage() {
     redirect("/login")
   }
 
-  const properties = await db.property.findMany({
+  const properties: PropertyWithUnits[] = await db.property.findMany({
     where: {
       userId: session.user.id,
     },
@@ -62,7 +63,7 @@ export default async function PropertiesPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {properties.map((property: any) => (
+          {properties.map((property) => (
             <Link key={property.id} href={`/properties/${property.id}`}>
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                 {property.image && (

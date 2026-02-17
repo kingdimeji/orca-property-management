@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { Prisma } from "@prisma/client"
 
 export async function POST(req: Request) {
   try {
@@ -55,7 +56,7 @@ export async function POST(req: Request) {
     }
 
     // Create lease and update unit status in a transaction
-    const lease = await db.$transaction(async (tx: any) => {
+    const lease = await db.$transaction(async (tx: Prisma.TransactionClient) => {
       // Create the lease
       const newLease = await tx.lease.create({
         data: {

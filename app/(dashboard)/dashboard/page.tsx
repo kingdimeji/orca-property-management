@@ -3,6 +3,7 @@ import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Users, DollarSign, AlertCircle } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import type { StatCard } from "@/types/prisma"
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -53,7 +54,7 @@ export default async function DashboardPage() {
 
   const pendingPayments = payments.filter((p: { status: string; amount: number }) => p.status === "PENDING" || p.status === "OVERDUE").length
 
-  const stats = [
+  const stats: StatCard[] = [
     {
       name: "Total Properties",
       value: properties.toString(),
@@ -93,7 +94,7 @@ export default async function DashboardPage() {
 
       {/* Stats Grid */}
       <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat: any) => {
+        {stats.map((stat) => {
           const Icon = stat.icon
           return (
             <Card key={stat.name}>

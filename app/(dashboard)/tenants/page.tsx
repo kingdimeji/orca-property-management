@@ -5,6 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Plus, Mail, Phone, Home } from "lucide-react"
+import type { TenantWithLeases } from "@/types/prisma"
 
 export default async function TenantsPage() {
   const session = await auth()
@@ -13,7 +14,7 @@ export default async function TenantsPage() {
     redirect("/login")
   }
 
-  const tenants = await db.tenant.findMany({
+  const tenants: TenantWithLeases[] = await db.tenant.findMany({
     include: {
       leases: {
         include: {
@@ -34,8 +35,8 @@ export default async function TenantsPage() {
   })
 
   // Filter tenants that have at least one lease with a property owned by the user
-  const userTenants = tenants.filter((tenant: any) =>
-    tenant.leases.some((lease: any) => lease.unit.property.userId === session.user.id)
+  const userTenants = tenants.filter((tenant) =>
+    tenant.leases.some((lease) => lease.unit.property.userId === session.user.id)
   )
 
   return (
@@ -75,8 +76,8 @@ export default async function TenantsPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {userTenants.map((tenant: any) => {
-            const activeLeases = tenant.leases.filter((l: any) => l.status === "ACTIVE")
+          {userTenants.map((tenant) => {
+            const activeLeases = tenant.leases.filter((l) => l.status === "ACTIVE")
             const activeLease = activeLeases[0]
 
             return (

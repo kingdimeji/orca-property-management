@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Mail, Phone, User, FileText, Calendar } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
 import CreateLeaseButton from "./create-lease-button"
+import type { TenantWithLeases, UnitWithProperty } from "@/types/prisma"
 
 export default async function TenantDetailsPage({
   params,
@@ -21,7 +22,7 @@ export default async function TenantDetailsPage({
 
   const { id } = await params
 
-  const tenant = await db.tenant.findUnique({
+  const tenant: TenantWithLeases | null = await db.tenant.findUnique({
     where: {
       id,
     },
@@ -47,7 +48,7 @@ export default async function TenantDetailsPage({
 
   // Verify user owns at least one property related to this tenant's leases
   const hasAccess = tenant.leases.some(
-    (lease: any) => lease.unit.property.userId === session.user.id
+    (lease) => lease.unit.property.userId === session.user.id
   )
 
   if (!hasAccess && tenant.leases.length > 0) {
@@ -55,7 +56,7 @@ export default async function TenantDetailsPage({
   }
 
   // Get user's available units for creating new leases
-  const availableUnits = await db.unit.findMany({
+  const availableUnits: UnitWithProperty[] = await db.unit.findMany({
     where: {
       property: {
         userId: session.user.id,
@@ -67,8 +68,8 @@ export default async function TenantDetailsPage({
     },
   })
 
-  const activeLeases = tenant.leases.filter((l: any) => l.status === "ACTIVE")
-  const pastLeases = tenant.leases.filter((l: any) => l.status !== "ACTIVE")
+  const activeLeases = tenant.leases.filter((l) => l.status === "ACTIVE")
+  const pastLeases = tenant.leases.filter((l) => l.status !== "ACTIVE")
 
   return (
     <div>
@@ -180,7 +181,7 @@ export default async function TenantDetailsPage({
       {activeLeases.length > 0 && (
         <div className="mb-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Active Lease</h2>
-          {activeLeases.map((lease: any) => (
+          {activeLeases.map((lease) => (
             <Card key={lease.id} className="border-green-200 bg-green-50">
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
@@ -234,7 +235,7 @@ export default async function TenantDetailsPage({
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Lease History</h2>
           <div className="space-y-4">
-            {pastLeases.map((lease: any) => (
+            {pastLeases.map((lease) => (
               <Card key={lease.id}>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between text-lg">

@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import Link from "next/link"
+import type { NavigationItem } from "@/types/prisma"
 import {
   Home,
   Building2,
@@ -23,7 +24,7 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
-  const navigation = [
+  const navigation: NavigationItem[] = [
     { name: "Dashboard", href: "/dashboard", icon: Home },
     { name: "Properties", href: "/properties", icon: Building2 },
     { name: "Tenants", href: "/tenants", icon: Users },
@@ -44,7 +45,7 @@ export default async function DashboardLayout({
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
-            {navigation.map((item: any) => {
+            {navigation.map((item) => {
               const Icon = item.icon
               return (
                 <Link

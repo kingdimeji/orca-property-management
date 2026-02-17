@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArrowLeft, Plus, MapPin, Home } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import AddUnitButton from "./add-unit-button"
+import type { PropertyWithUnits } from "@/types/prisma"
 
 export default async function PropertyDetailsPage({
   params,
@@ -21,7 +22,7 @@ export default async function PropertyDetailsPage({
 
   const { id } = await params
 
-  const property = await db.property.findUnique({
+  const property: PropertyWithUnits | null = await db.property.findUnique({
     where: {
       id,
       userId: session.user.id,
@@ -39,8 +40,8 @@ export default async function PropertyDetailsPage({
     notFound()
   }
 
-  const vacantUnits = property.units.filter((u: { status: string }) => u.status === "VACANT").length
-  const occupiedUnits = property.units.filter((u: { status: string }) => u.status === "OCCUPIED").length
+  const vacantUnits = property.units.filter((u) => u.status === "VACANT").length
+  const occupiedUnits = property.units.filter((u) => u.status === "OCCUPIED").length
 
   return (
     <div>
@@ -132,7 +133,7 @@ export default async function PropertyDetailsPage({
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {property.units.map((unit: any) => (
+          {property.units.map((unit) => (
             <Card key={unit.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-start justify-between">
