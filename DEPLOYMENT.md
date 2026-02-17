@@ -198,3 +198,12 @@ After successful deployment:
 - Start with free tier for staging/testing
 - Upgrade when you reach ~50-100 active users
 - Monitor usage in dashboard
+
+
+
+URL: https://orca-property-management.vercel.app
+Database: Supabase PostgreSQL (pooled connection)
+Auto-deploy: Enabled via GitHub integration 
+
+
+Fedamchaina.1

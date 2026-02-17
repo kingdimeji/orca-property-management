@@ -102,6 +102,7 @@ select::placeholder, textarea::placeholder {
 
 /* Label styling */
 label {
+  display: block !important;
   font-size: 0.875rem !important;
   font-weight: 600 !important;
   color: #2d3748 !important;
