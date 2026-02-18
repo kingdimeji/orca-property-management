@@ -17,22 +17,10 @@ export default async function ReportsPage() {
       include: {
         lease: {
           include: {
-            tenant: {
-              select: {
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
-            },
+            tenant: true,
             unit: {
-              select: {
-                name: true,
-                property: {
-                  select: {
-                    name: true,
-                    userId: true,
-                  },
-                },
+              include: {
+                property: true,
               },
             },
           },
@@ -47,11 +35,7 @@ export default async function ReportsPage() {
         userId: session.user.id,
       },
       include: {
-        property: {
-          select: {
-            name: true,
-          },
-        },
+        property: true,
       },
       orderBy: { date: "desc" },
     }),

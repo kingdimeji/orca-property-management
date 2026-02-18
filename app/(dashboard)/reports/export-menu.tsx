@@ -13,14 +13,13 @@ import {
 interface ExportMenuProps {
   payments: (Payment & {
     lease: {
-      tenant: { firstName: string; lastName: string; email: string }
+      tenant: any
       unit: {
-        name: string
-        property: { name: string }
+        property: Property
       }
     }
   })[]
-  expenses: (Expense & { property?: { name: string } | null })[]
+  expenses: (Expense & { property: Property | null })[]
   dateRange: { startDate: Date; endDate: Date }
   currency: string
 }
