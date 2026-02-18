@@ -1,7 +1,7 @@
 # Orca Property Management - Development Roadmap
 
-**Last Updated**: February 2026
-**Version**: 2.0 (Revised after Competitive Analysis)
+**Last Updated**: February 18, 2026
+**Version**: 2.1 (Payment Tracking + CRUD Complete)
 
 > **See [BACKLOG.md](BACKLOG.md) for detailed feature tasks and development tracking**
 > **See [COMPETITIVE_ANALYSIS.md](COMPETITIVE_ANALYSIS.md) for full market research**
@@ -43,8 +43,12 @@ Build the best property management software for small landlords (1-10 units) in 
 - [x] Lease management with unit linking
 - [x] Dashboard with real-time statistics
 - [x] Modern, clean UI/UX
+- [x] Full Edit/Delete operations for all resources (Feb 13, 2026)
+- [x] Delete confirmations with cascade warnings (Feb 13, 2026)
+- [x] User settings page (profile, currency, password) (Feb 13, 2026)
+- [x] Automated lease expiry (daily cron job) (Feb 13, 2026)
 
-**Status**: ✅ Foundation Complete - Ready for critical features
+**Status**: ✅ Foundation Complete + Production-Ready Features Added
 
 ---
 
@@ -56,10 +60,10 @@ Build the best property management software for small landlords (1-10 units) in 
 
 **Features**:
 1. **Week 1: Payment Infrastructure** ⚡ CRITICAL
-   - Paystack integration for online payments
-   - Manual payment recording
-   - Payment history tracking
-   - Payment dashboard with outstanding balances
+   - [ ] Paystack integration for online payments
+   - [x] Manual payment recording ✅ (Feb 18, 2026)
+   - [x] Payment history tracking ✅ (Feb 18, 2026)
+   - [x] Payment dashboard with outstanding balances ✅ (Feb 18, 2026)
 
 2. **Week 2: Financial Reporting** ⚡ CRITICAL
    - Expense tracking with categories
@@ -312,7 +316,7 @@ Build the best property management software for small landlords (1-10 units) in 
 |-----------|-------------|--------|
 | **MVP Complete** | ✅ Done | Completed |
 | **Design Overhaul** | ✅ Done | Completed |
-| **Payment Integration** | Week 1 End | Not Started |
+| **Payment Integration** | Week 1 End | In Progress (Manual tracking ✅, Paystack pending) |
 | **Financial Reports** | Week 2 End | Not Started |
 | **Tenant Portal** | Week 3 End | Not Started |
 | **Nigerian Features** | Week 6 End | Not Started |
@@ -380,8 +384,8 @@ Build the best property management software for small landlords (1-10 units) in 
 ---
 
 **Next Actions**:
-1. ✅ Complete form fixes (waiting for user's list)
-2. 🚀 Start Week 1: Payment Integration (Paystack)
+1. ✅ Manual Payment Tracking (Complete - Feb 18, 2026)
+2. 🚀 **NEXT**: Paystack Integration (Week 1 - Online Payment Processing)
 3. 📊 Set up analytics tracking
 4. 🧪 Begin E2E testing setup
 
