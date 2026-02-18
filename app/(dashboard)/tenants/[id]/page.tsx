@@ -11,6 +11,7 @@ import EditLeaseButton from "./edit-lease-button"
 import DeleteTenantButton from "./delete-tenant-button"
 import DeleteLeaseButton from "./delete-lease-button"
 import RecordPaymentButton from "./record-payment-button"
+import GeneratePaymentLinkButton from "./generate-payment-link-button"
 import PaymentSummary from "./payment-summary"
 import PaymentHistorySection from "./payment-history-section"
 import type { TenantWithLeasesAndPayments, UnitWithProperty } from "@/types/prisma"
@@ -259,11 +260,17 @@ export default async function TenantDetailsPage({
                     currency={session.user.currency}
                   />
 
-                  <div className="pt-3 border-t">
+                  <div className="pt-3 border-t flex gap-2">
                     <RecordPaymentButton
                       leaseId={lease.id}
                       monthlyRent={lease.monthlyRent}
                       currency={session.user.currency}
+                    />
+                    <GeneratePaymentLinkButton
+                      leaseId={lease.id}
+                      monthlyRent={lease.monthlyRent}
+                      currency={session.user.currency}
+                      tenantEmail={tenant.email}
                     />
                   </div>
                 </div>
