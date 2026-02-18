@@ -88,11 +88,12 @@ export async function POST(request: NextRequest) {
       },
     })
 
-    // Update payment with Paystack reference
+    // Update payment with Paystack reference and authorization URL
     await db.payment.update({
       where: { id: payment.id },
       data: {
         reference: paystackResponse.data.reference,
+        receiptUrl: paystackResponse.data.authorization_url, // Store Paystack checkout URL
       },
     })
 
