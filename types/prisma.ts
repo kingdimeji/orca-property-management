@@ -40,6 +40,63 @@ export type UnitWithProperty = Prisma.UnitGetPayload<{
   }
 }>
 
+/**
+ * Payment with lease and nested relations
+ * Used in: api/payments/[id]/route.ts
+ */
+export type PaymentWithLease = Prisma.PaymentGetPayload<{
+  include: {
+    lease: {
+      include: {
+        unit: {
+          include: {
+            property: true
+          }
+        }
+        tenant: true
+      }
+    }
+  }
+}>
+
+/**
+ * Lease with payments ordered by due date
+ * Used in: payment-related components
+ */
+export type LeaseWithPayments = Prisma.LeaseGetPayload<{
+  include: {
+    payments: {
+      orderBy: {
+        dueDate: "desc"
+      }
+    }
+  }
+}>
+
+/**
+ * Tenant with leases and payments
+ * Used in: tenants/[id]/page.tsx (for payment tracking)
+ */
+export type TenantWithLeasesAndPayments = Prisma.TenantGetPayload<{
+  include: {
+    leases: {
+      include: {
+        unit: {
+          include: {
+            property: true
+          }
+        }
+        payments: {
+          orderBy: {
+            dueDate: "desc"
+          }
+          take: 10
+        }
+      }
+    }
+  }
+}>
+
 // Non-Prisma UI types
 
 /**

@@ -10,7 +10,10 @@ import CreateLeaseButton from "./create-lease-button"
 import EditLeaseButton from "./edit-lease-button"
 import DeleteTenantButton from "./delete-tenant-button"
 import DeleteLeaseButton from "./delete-lease-button"
-import type { TenantWithLeases, UnitWithProperty } from "@/types/prisma"
+import RecordPaymentButton from "./record-payment-button"
+import PaymentSummary from "./payment-summary"
+import PaymentHistorySection from "./payment-history-section"
+import type { TenantWithLeasesAndPayments, UnitWithProperty } from "@/types/prisma"
 
 export default async function TenantDetailsPage({
   params,
@@ -25,7 +28,7 @@ export default async function TenantDetailsPage({
 
   const { id } = await params
 
-  const tenant: TenantWithLeases | null = await db.tenant.findUnique({
+  const tenant: TenantWithLeasesAndPayments | null = await db.tenant.findUnique({
     where: {
       id,
     },
@@ -36,6 +39,12 @@ export default async function TenantDetailsPage({
             include: {
               property: true,
             },
+          },
+          payments: {
+            orderBy: {
+              dueDate: "desc",
+            },
+            take: 10,
           },
         },
         orderBy: {
@@ -236,6 +245,29 @@ export default async function TenantDetailsPage({
                     <p className="mt-1 text-sm">{lease.terms}</p>
                   </div>
                 )}
+
+                {/* Payment Tracking Section */}
+                <div className="pt-4 border-t space-y-4">
+                  <PaymentSummary
+                    payments={lease.payments}
+                    monthlyRent={lease.monthlyRent}
+                    currency={session.user.currency}
+                  />
+
+                  <PaymentHistorySection
+                    payments={lease.payments}
+                    currency={session.user.currency}
+                  />
+
+                  <div className="pt-3 border-t">
+                    <RecordPaymentButton
+                      leaseId={lease.id}
+                      monthlyRent={lease.monthlyRent}
+                      currency={session.user.currency}
+                    />
+                  </div>
+                </div>
+
                 <div className="pt-3 border-t flex gap-2">
                   <EditLeaseButton lease={lease} />
                   <DeleteLeaseButton lease={lease} />
@@ -288,6 +320,25 @@ export default async function TenantDetailsPage({
                       <p className="font-medium">{formatDate(lease.endDate)}</p>
                     </div>
                   </div>
+
+                  {/* Payment Summary for Past Leases */}
+                  {lease.payments.length > 0 && (
+                    <div className="text-sm text-gray-600 pt-3 border-t mb-3">
+                      <span className="font-medium">
+                        {lease.payments.filter((p) => p.status === "PAID").length} payment(s)
+                      </span>
+                      {" "}totaling{" "}
+                      <span className="font-medium text-gray-900">
+                        {formatCurrency(
+                          lease.payments
+                            .filter((p) => p.status === "PAID")
+                            .reduce((sum, p) => sum + p.amount, 0),
+                          session.user.currency
+                        )}
+                      </span>
+                    </div>
+                  )}
+
                   <div className="pt-3 border-t flex gap-2">
                     <EditLeaseButton lease={lease} />
                     <DeleteLeaseButton lease={lease} />
