@@ -14,6 +14,7 @@ import RecordPaymentButton from "./record-payment-button"
 import GeneratePaymentLinkButton from "./generate-payment-link-button"
 import PaymentSummary from "./payment-summary"
 import PaymentHistorySection from "./payment-history-section"
+import InviteTenantButton from "./invite-tenant-button"
 import type { TenantWithLeasesAndPayments, UnitWithProperty } from "@/types/prisma"
 
 export default async function TenantDetailsPage({
@@ -113,6 +114,11 @@ export default async function TenantDetailsPage({
             </div>
           </div>
           <div className="flex gap-2">
+            <InviteTenantButton
+              tenantId={tenant.id}
+              tenantEmail={tenant.email}
+              hasPortalAccess={!!tenant.authUserId}
+            />
             <Link href={`/tenants/${tenant.id}/edit`}>
               <Button size="sm">
                 <Edit className="w-4 h-4 mr-2" />

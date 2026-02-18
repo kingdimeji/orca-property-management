@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-export function middleware(request: NextRequest) {
-  // For now, we'll handle auth in the layout components
-  // This middleware can be used for other purposes like logging, etc.
+export async function middleware(request: NextRequest) {
+  // For now, handle auth checks in layout components
+  // TODO: Implement proper Edge-compatible auth middleware
   return NextResponse.next()
 }
 

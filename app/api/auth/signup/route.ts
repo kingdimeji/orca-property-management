@@ -44,6 +44,7 @@ export async function POST(req: Request) {
         email,
         password: hashedPassword,
         name,
+        role: "LANDLORD",
         country: country || "NG",
         currency,
       },

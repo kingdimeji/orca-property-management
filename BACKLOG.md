@@ -1,7 +1,7 @@
 # Orca Property Management - Backlog
 
 **Last Updated**: February 18, 2026
-**Next Milestone**: Week 1 - Paystack Integration (Payment Gateway)
+**Next Milestone**: Week 3 - Tenant Portal (Basic)
 
 > **See [ROADMAP.md](ROADMAP.md) for strategic vision, pricing strategy, market positioning, and success metrics**
 
@@ -53,35 +53,70 @@
 
 > Based on competitive analysis: These features are available in ALL competitors. We cannot launch without them.
 
-### 1. Payment Collection & Processing ⚡ WEEK 1
-- **Status**: 🟡 Partially Complete (Manual tracking done, Paystack integration pending)
+### 1. Payment Collection & Processing ⚡ WEEK 1 ✅ COMPLETE
+- **Status**: ✅ Complete (Feb 18, 2026)
 - **Priority**: 🔴 P0 - CRITICAL GAP
 - **Impact**: Every single competitor has this
-- **Timeline**: Week 1 (2-3 days remaining)
+- **Timeline**: Week 1 (Completed)
 - **Tasks**:
-  - [ ] Integrate Paystack (primary for Nigeria) - NEXT
+  - [x] Integrate Paystack (primary for Nigeria) ✅ (Feb 18, 2026)
   - [x] Manual payment recording ✅ (Feb 18, 2026)
   - [x] Payment history tracking ✅ (Feb 18, 2026)
   - [x] Payment status dashboard ✅ (Feb 18, 2026)
   - [x] Outstanding balance calculations ✅ (Feb 18, 2026)
-  - [ ] Payment webhooks handling - NEXT
-- **Dependencies**: None - can start Paystack immediately
+  - [x] Payment webhooks handling ✅ (Feb 18, 2026)
+  - [x] Generate payment links for tenants ✅ (Feb 18, 2026)
+  - [x] Public payment pages ✅ (Feb 18, 2026)
+  - [x] Payment callback verification ✅ (Feb 18, 2026)
+- **Dependencies**: None
 - **Blockers**: None
-- **Success Criteria**: Landlords can record and track all rent payments ✅ + Online payment processing via Paystack
+- **Success Criteria**: ✅ Landlords can record and track all rent payments + Online payment processing via Paystack + Payment link generation
 
-### 2. Financial Reporting ⚡ WEEK 2
-- **Status**: Not Started
+### 2. Financial Reporting ⚡ WEEK 2 ✅ COMPLETE
+- **Status**: ✅ Complete (Feb 18, 2026)
 - **Priority**: 🔴 P0 - CRITICAL GAP
-- **Impact**: Market expectation, needed for taxes
-- **Timeline**: Week 2 (4-5 days)
-- **Tasks**:
-  - [ ] Expense tracking interface
-  - [ ] Income reports (monthly, YTD)
-  - [ ] Profit/loss statements
-  - [ ] Export to CSV/PDF
-  - [ ] Expense categorization
-- **Dependencies**: Payment collection must be done first
-- **Success Criteria**: Complete financial overview available
+- **Impact**: Market expectation, needed for taxes, 100% competitor coverage
+- **Timeline**: Week 2 (Completed in 1 day)
+- **Phase 1: Expense CRUD (Days 1-2)** ✅
+  - [x] Backend API routes (POST, GET, PATCH, DELETE) ✅
+    - [x] app/api/expenses/route.ts (create and list) ✅
+    - [x] app/api/expenses/[id]/route.ts (get, update, delete) ✅
+  - [x] Frontend expense management UI ✅
+    - [x] app/(dashboard)/expenses/page.tsx (list view with summary) ✅
+    - [x] Add Expense modal with 11 categories ✅
+    - [x] Edit/Delete expense functionality ✅
+  - [x] Type definitions (ExpenseWithProperty) ✅
+  - [x] Navigation integration (Expenses link in sidebar) ✅
+- **Phase 2: Financial Reports (Days 3-4)** ✅
+  - [x] Calculation utilities (lib/reports.ts) ✅
+    - [x] Date range helpers (month, quarter, year, custom) ✅
+    - [x] Income calculations from payments ✅
+    - [x] Expense calculations with category grouping ✅
+    - [x] Profit/loss calculations ✅
+    - [x] Property-level metrics ✅
+  - [x] Reports dashboard (app/(dashboard)/reports/page.tsx) ✅
+    - [x] Time range selector (month/quarter/year/all/custom) ✅
+    - [x] Property filter ✅
+    - [x] Overview cards (income, expenses, profit, margin) ✅
+    - [x] Expense breakdown by category ✅
+    - [x] Property-level P&L table ✅
+  - [x] Navigation integration (Reports link in sidebar) ✅
+- **Phase 3: Export Functionality (Day 5)** ✅
+  - [x] CSV export implementation (lib/csv-export.ts) ✅
+    - [x] Export expenses to CSV ✅
+    - [x] Export income to CSV ✅
+    - [x] Export full financial report ✅
+  - [x] PDF export via browser print ✅
+    - [x] Print-optimized report view ✅
+    - [x] Save as PDF functionality ✅
+  - [x] Export menu UI component ✅
+- **Dependencies**: ✅ Payment collection complete
+- **Success Criteria**: ✅ ALL COMPLETE
+  - ✅ Expense CRUD working with 11 categories
+  - ✅ Income/expense reports with time filters
+  - ✅ Profit/loss statements by property
+  - ✅ CSV and PDF export functional
+  - ✅ Multi-currency display working
 
 ### 3. Tenant Portal (Basic) ⚡ WEEK 3
 - **Status**: Not Started
@@ -348,6 +383,27 @@
 - [x] Currency-aware payment display
 - [x] Authorization through ownership chain (payment → lease → unit → property)
 - [x] TypeScript types for payment operations
+
+### February 18, 2026 - Paystack Integration (Online Payments)
+- [x] Backend implementation
+  - [x] TypeScript type definitions (types/paystack.ts)
+  - [x] Paystack API wrapper (lib/paystack.ts) - initialize and verify
+  - [x] Webhook signature verification (lib/crypto-utils.ts) - HMAC SHA512
+  - [x] Initialize payment endpoint (app/api/paystack/initialize/route.ts)
+  - [x] Webhook handler (app/api/paystack/webhook/route.ts)
+- [x] Public payment pages
+  - [x] Payment landing page (app/pay/[reference]/page.tsx)
+  - [x] Payment callback handler (app/pay/[reference]/callback/page.tsx)
+  - [x] Multi-currency support (NGN, GBP, NOK)
+  - [x] Secure payment flow with Paystack
+- [x] Landlord UI
+  - [x] Generate Payment Link button (modal form)
+  - [x] Copy-to-clipboard functionality
+  - [x] Integration with tenant lease details page
+- [x] Environment configuration
+  - [x] PAYSTACK_SECRET_KEY support
+  - [x] PAYSTACK_PUBLIC_KEY support
+  - [x] Updated .env.example with Paystack keys
 
 ---
 

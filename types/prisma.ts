@@ -60,6 +60,16 @@ export type PaymentWithLease = Prisma.PaymentGetPayload<{
 }>
 
 /**
+ * Expense with property relation
+ * Used in: api/expenses/route.ts, expenses/page.tsx
+ */
+export type ExpenseWithProperty = Prisma.ExpenseGetPayload<{
+  include: {
+    property: true
+  }
+}>
+
+/**
  * Lease with payments ordered by due date
  * Used in: payment-related components
  */

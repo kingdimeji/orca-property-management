@@ -1,20 +1,22 @@
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import Link from "next/link"
-import type { NavigationItem } from "@/types/prisma"
 import {
   Home,
-  Building2,
-  Users,
-  DollarSign,
-  Receipt,
-  Wrench,
   FileText,
-  Settings,
-  LogOut
+  DollarSign,
+  Wrench,
+  LogOut,
 } from "lucide-react"
+import { signOut } from "@/lib/auth"
 
-export default async function DashboardLayout({
+interface NavigationItem {
+  name: string
+  href: string
+  icon: any
+}
+
+export default async function TenantPortalLayout({
   children,
 }: {
   children: React.ReactNode
@@ -25,14 +27,16 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
+  // Redirect landlords trying to access tenant portal
+  if (session.user.role !== "TENANT") {
+    redirect("/dashboard")
+  }
+
   const navigation: NavigationItem[] = [
-    { name: "Dashboard", href: "/dashboard", icon: Home },
-    { name: "Properties", href: "/properties", icon: Building2 },
-    { name: "Tenants", href: "/tenants", icon: Users },
-    { name: "Payments", href: "/payments", icon: DollarSign },
-    { name: "Expenses", href: "/expenses", icon: Receipt },
-    { name: "Maintenance", href: "/maintenance", icon: Wrench },
-    { name: "Reports", href: "/reports", icon: FileText },
+    { name: "Dashboard", href: "/tenant-portal", icon: Home },
+    { name: "My Lease", href: "/tenant-portal/lease", icon: FileText },
+    { name: "Payments", href: "/tenant-portal/payments", icon: DollarSign },
+    { name: "Maintenance", href: "/tenant-portal/maintenance", icon: Wrench },
   ]
 
   return (
@@ -42,7 +46,10 @@ export default async function DashboardLayout({
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center h-16 px-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-blue-600">Orca</h1>
+            <h1 className="text-2xl font-bold text-teal-600">Orca</h1>
+            <span className="ml-2 text-xs font-semibold text-gray-500 uppercase">
+              Tenant
+            </span>
           </div>
 
           {/* Navigation */}
@@ -53,7 +60,7 @@ export default async function DashboardLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="flex items-center px-4 py-3 text-sm font-medium text-gray-700 rounded-lg hover:bg-teal-50 hover:text-teal-700 transition-colors"
                 >
                   <Icon className="w-5 h-5 mr-3" />
                   {item.name}
@@ -67,33 +74,34 @@ export default async function DashboardLayout({
             <div className="flex items-center mb-4">
               <div className="flex-1">
                 <p className="text-sm font-medium text-gray-900">
-                  {session.user.name || "User"}
+                  {session.user.name || "Tenant"}
                 </p>
                 <p className="text-xs text-gray-500 truncate">
                   {session.user.email}
                 </p>
               </div>
             </div>
-            <Link
-              href="/settings"
-              className="flex items-center w-full px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100 mb-2"
+            <form
+              action={async () => {
+                "use server"
+                await signOut()
+              }}
             >
-              <Settings className="w-4 h-4 mr-2" />
-              Settings
-            </Link>
-            <button className="flex items-center w-full px-4 py-2 text-sm text-red-600 rounded-lg hover:bg-red-50">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign out
-            </button>
+              <button
+                type="submit"
+                className="flex items-center w-full px-4 py-2 text-sm text-gray-700 rounded-lg hover:bg-gray-100"
+              >
+                <LogOut className="w-4 h-4 mr-3" />
+                Sign Out
+              </button>
+            </form>
           </div>
         </div>
       </div>
 
       {/* Main content */}
       <div className="pl-64">
-        <main className="p-8">
-          {children}
-        </main>
+        <main className="p-8">{children}</main>
       </div>
     </div>
   )

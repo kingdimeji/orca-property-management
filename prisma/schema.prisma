@@ -15,16 +15,26 @@ model User {
   name          String?
   password      String
   phone         String?
+  role          UserRole  @default(LANDLORD)
   country       String    @default("NG") // NG, GB, NO
   currency      String    @default("NGN") // NGN, GBP, NOK
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Landlord relations
   properties    Property[]
   tenants       Tenant[]
   expenses      Expense[]
 
+  // Tenant relation
+  tenantProfile Tenant?   @relation("TenantAuth")
+
   @@map("users")
+}
+
+enum UserRole {
+  LANDLORD
+  TENANT
 }
 
 // Property model - Buildings/Houses
@@ -104,10 +114,20 @@ model Tenant {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Landlord who owns/created this tenant record
   userId        String?
   user          User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Tenant's own auth account for portal access
+  authUserId    String?   @unique
+  authUser      User?     @relation("TenantAuth", fields: [authUserId], references: [id], onDelete: SetNull)
+
+  // Portal invite token
+  inviteToken   String?
+  inviteTokenExpiry DateTime?
+
   leases        Lease[]
+  maintenanceRequests MaintenanceRequest[]
 
   @@map("tenants")
 }
@@ -218,7 +238,7 @@ model MaintenanceRequest {
   category      String?   // e.g., "Plumbing", "Electrical", "General"
   images        String[]  // URLs to uploaded images
   cost          Float?
-  notes         String?
+  notes         String?   // Landlord response/notes
   reportedDate  DateTime  @default(now())
   resolvedDate  DateTime?
   createdAt     DateTime  @default(now())
@@ -226,6 +246,10 @@ model MaintenanceRequest {
 
   unitId        String
   unit          Unit      @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  // Track which tenant reported this request
+  reportedBy    String?
+  tenant        Tenant?   @relation(fields: [reportedBy], references: [id], onDelete: SetNull)
 
   @@map("maintenance_requests")
 }

@@ -107,3 +107,108 @@ label {
   font-weight: 600 !important;
   color: #2d3748 !important;
 }
+
+/* Print styles for PDF generation */
+@media print {
+  /* Hide non-essential elements */
+  nav,
+  aside,
+  .no-print,
+  button:not(.print-visible),
+  [class*="sidebar"],
+  [class*="navigation"] {
+    display: none !important;
+  }
+
+  /* Reset layout */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Remove padding/margins from main content */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Ensure content fits page width */
+  .min-h-screen {
+    min-height: auto !important;
+  }
+
+  .pl-64 {
+    padding-left: 0 !important;
+  }
+
+  /* Optimize tables for print */
+  table {
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  /* Ensure cards and content print well */
+  .shadow,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: none !important;
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  /* Make text more print-friendly */
+  h1 {
+    font-size: 24pt !important;
+    margin-bottom: 12pt !important;
+  }
+
+  h2 {
+    font-size: 18pt !important;
+    margin-bottom: 10pt !important;
+  }
+
+  h3 {
+    font-size: 14pt !important;
+    margin-bottom: 8pt !important;
+  }
+
+  p {
+    font-size: 11pt !important;
+  }
+
+  /* Ensure colors print correctly */
+  .text-green-600,
+  .text-green-700 {
+    color: #16a34a !important;
+  }
+
+  .text-red-600,
+  .text-red-700 {
+    color: #dc2626 !important;
+  }
+
+  .text-blue-600,
+  .text-blue-700 {
+    color: #2563eb !important;
+  }
+
+  /* Print page breaks */
+  .page-break-before {
+    page-break-before: always;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .page-break-avoid {
+    page-break-inside: avoid;
+  }
+}

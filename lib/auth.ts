@@ -25,6 +25,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           where: {
             email: credentials.email as string,
           },
+          include: {
+            tenantProfile: true,
+          },
         })
 
         if (!user) {
@@ -44,8 +47,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           id: user.id,
           email: user.email,
           name: user.name,
+          role: user.role,
           country: user.country,
           currency: user.currency,
+          tenantProfileId: user.tenantProfile?.id,
         }
       },
     }),
@@ -54,16 +59,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id
+        token.role = user.role
         token.country = user.country
         token.currency = user.currency
+        token.tenantProfileId = user.tenantProfileId
       }
       return token
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id as string
+        session.user.role = token.role as "LANDLORD" | "TENANT"
         session.user.country = token.country as string
         session.user.currency = token.currency as string
+        session.user.tenantProfileId = token.tenantProfileId as string | undefined
       }
       return session
     },

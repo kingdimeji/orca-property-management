@@ -6,8 +6,10 @@ declare module "next-auth" {
       id: string
       email: string
       name: string | null
+      role: "LANDLORD" | "TENANT"
       country: string
       currency: string
+      tenantProfileId?: string
     }
   }
 
@@ -15,15 +17,19 @@ declare module "next-auth" {
     id: string
     email: string
     name: string | null
+    role: "LANDLORD" | "TENANT"
     country: string
     currency: string
+    tenantProfileId?: string
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
     id: string
+    role: "LANDLORD" | "TENANT"
     country: string
     currency: string
+    tenantProfileId?: string
   }
 }
