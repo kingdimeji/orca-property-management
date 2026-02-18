@@ -34,10 +34,17 @@ export default async function TenantsPage() {
     },
   })
 
-  // Filter tenants that have at least one lease with a property owned by the user
-  const userTenants = tenants.filter((tenant) =>
-    tenant.leases.some((lease) => lease.unit.property.userId === session.user.id)
-  )
+  // Filter tenants owned by the user:
+  // 1. Direct ownership via userId (new tenants)
+  // 2. OR indirect ownership through leases (backward compatibility)
+  const userTenants = tenants.filter((tenant) => {
+    // Check direct ownership first
+    if (tenant.userId === session.user.id) {
+      return true
+    }
+    // Fallback: check if tenant has any lease with a property owned by the user
+    return tenant.leases.some((lease) => lease.unit.property.userId === session.user.id)
+  })
 
   return (
     <div>

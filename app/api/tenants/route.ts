@@ -53,6 +53,7 @@ export async function POST(req: Request) {
         emergencyPhone: emergencyPhone || null,
         idType: idType || null,
         idNumber: idNumber || null,
+        userId: session.user.id,
       },
     })
 
