@@ -1,7 +1,7 @@
 # Orca Property Management - Backlog
 
-**Last Updated**: February 2026 (Post Competitive Analysis)
-**Next Milestone**: Week 1 - Payment Integration
+**Last Updated**: February 18, 2026
+**Next Milestone**: Week 1 - Paystack Integration (Payment Gateway)
 
 > **See [ROADMAP.md](ROADMAP.md) for strategic vision, pricing strategy, market positioning, and success metrics**
 
@@ -11,7 +11,11 @@
 
 **Completed**:
 - ✅ Core property/unit/tenant/lease management
+- ✅ Full CRUD operations (Edit/Delete with confirmations)
 - ✅ Multi-currency support (UNIQUE advantage)
+- ✅ User settings page (profile, currency, password management)
+- ✅ Automated lease expiry (daily cron job)
+- ✅ Manual payment tracking (record payments, view history, track balances)
 - ✅ Stripe-inspired modern design (Better than most competitors)
 - ✅ Dashboard with statistics
 
@@ -50,20 +54,20 @@
 > Based on competitive analysis: These features are available in ALL competitors. We cannot launch without them.
 
 ### 1. Payment Collection & Processing ⚡ WEEK 1
-- **Status**: Not Started
+- **Status**: 🟡 Partially Complete (Manual tracking done, Paystack integration pending)
 - **Priority**: 🔴 P0 - CRITICAL GAP
 - **Impact**: Every single competitor has this
-- **Timeline**: Week 1 (5-7 days)
+- **Timeline**: Week 1 (2-3 days remaining)
 - **Tasks**:
-  - [ ] Integrate Paystack (primary for Nigeria)
-  - [ ] Manual payment recording
-  - [ ] Payment history tracking
-  - [ ] Payment status dashboard
-  - [ ] Outstanding balance calculations
-  - [ ] Payment webhooks handling
-- **Dependencies**: None - can start immediately
+  - [ ] Integrate Paystack (primary for Nigeria) - NEXT
+  - [x] Manual payment recording ✅ (Feb 18, 2026)
+  - [x] Payment history tracking ✅ (Feb 18, 2026)
+  - [x] Payment status dashboard ✅ (Feb 18, 2026)
+  - [x] Outstanding balance calculations ✅ (Feb 18, 2026)
+  - [ ] Payment webhooks handling - NEXT
+- **Dependencies**: None - can start Paystack immediately
 - **Blockers**: None
-- **Success Criteria**: Landlords can record and track all rent payments
+- **Success Criteria**: Landlords can record and track all rent payments ✅ + Online payment processing via Paystack
 
 ### 2. Financial Reporting ⚡ WEEK 2
 - **Status**: Not Started
@@ -303,6 +307,7 @@
 
 ## ✅ Completed
 
+### Core Features (Initial Build)
 - [x] Initial project setup (Next.js, Prisma, NextAuth)
 - [x] Database schema design
 - [x] Authentication (signup/login)
@@ -313,6 +318,36 @@
 - [x] Leases management
 - [x] Stripe-inspired design overhaul
 - [x] Fix light text issue in forms
+
+### February 13, 2026 - CRUD Operations & Settings
+- [x] Edit operations for all resources (properties, units, tenants, leases)
+- [x] Delete operations with confirmation dialogs
+- [x] Reusable ConfirmDialog component
+- [x] Cascade delete warnings
+- [x] User settings page (profile, regional settings, security)
+- [x] Password change functionality with bcrypt validation
+- [x] Multi-currency support in settings (NGN/GBP/NOK)
+
+### February 13, 2026 - Automation
+- [x] Automated lease expiry system (Vercel cron job)
+- [x] Daily cron job to update ACTIVE → EXPIRED leases
+- [x] Auto-update unit status to VACANT when lease expires
+- [x] Transaction support for lease/unit status sync
+
+### February 18, 2026 - Payment Tracking (Manual)
+- [x] Payment API endpoints (POST, GET, PATCH, DELETE)
+- [x] Record Payment modal with comprehensive fields
+- [x] Payment history table with status badges
+- [x] Payment summary metrics (total paid, outstanding, next due)
+- [x] Payment status tracking (PAID, PENDING, OVERDUE, PARTIAL, CANCELLED)
+- [x] Late fee tracking
+- [x] Payment method dropdown (Bank Transfer, Cash, Check, Mobile Money, Paystack, Other)
+- [x] Reference/transaction ID recording
+- [x] Payment notes field
+- [x] Integration with lease cards (active and past)
+- [x] Currency-aware payment display
+- [x] Authorization through ownership chain (payment → lease → unit → property)
+- [x] TypeScript types for payment operations
 
 ---
 
