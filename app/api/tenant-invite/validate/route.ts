@@ -31,7 +31,11 @@ export async function GET(req: Request) {
       include: {
         leases: {
           include: {
-            unit: true,
+            unit: {
+        include: {
+          property: true,
+        },
+      },
           },
           orderBy: { startDate: "desc" },
           take: 1,
