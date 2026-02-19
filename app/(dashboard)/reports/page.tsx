@@ -18,11 +18,7 @@ export default async function ReportsPage() {
         lease: {
           include: {
             tenant: true,
-            unit: {
-              include: {
-                property: true,
-              },
-            },
+            unit: true,
           },
         },
       },
