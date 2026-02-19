@@ -136,6 +136,7 @@ async function handleChargeSuccess(event: PaystackWebhookEvent) {
       data: {
         status: "PAID",
         paidDate,
+        paymentMethod: "Paystack",
         notes: `${payment.notes || ""}\nPaystack payment confirmed: ${reference}`.trim(),
       },
     })

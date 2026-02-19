@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, XCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
+import { sendPaymentConfirmationEmail } from "@/lib/email"
 
 interface CallbackPageProps {
   params: Promise<{
@@ -20,24 +21,36 @@ export default async function CallbackPage({
   params,
   searchParams,
 }: CallbackPageProps) {
-  const { reference: paymentId } = await params
+  const { reference: paymentReference } = await params
   const { trxref, reference: paystackRef } = await searchParams
 
-  // Fetch payment
-  const payment = await db.payment.findUnique({
-    where: { id: paymentId },
+  // Fetch payment by reference
+  const payment = await db.payment.findFirst({
+    where: { reference: paymentReference },
     include: {
       lease: {
         include: {
           tenant: true,
           unit: {
             include: {
-              property: true,
+              property: {
+                include: {
+                  user: true, // Include landlord for email
+                },
+              },
             },
           },
         },
       },
     },
+  })
+
+  console.log("[CALLBACK] Payment lookup:", {
+    reference: paymentReference,
+    found: !!payment,
+    status: payment?.status,
+    paymentMethod: payment?.paymentMethod,
+    hasRef: !!payment?.reference,
   })
 
   if (!payment) {
@@ -61,54 +74,102 @@ export default async function CallbackPage({
     )
   }
 
-  // If payment is already marked as PAID, show success
+  // If payment is already marked as PAID, check if we need to update paymentMethod
+  // (This handles the case where webhook hasn't fired due to localhost limitations)
   if (payment.status === "PAID") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
-        <Card className="max-w-lg w-full">
-          <CardHeader className="text-center">
-            <CheckCircle className="w-16 h-16 text-green-600 mx-auto mb-4" />
-            <CardTitle className="text-2xl font-bold">Payment Successful!</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center space-y-4">
-            <p className="text-gray-600">
-              Your payment has been confirmed. Thank you!
-            </p>
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <p className="text-sm text-green-800">
-                A receipt has been sent to your email address.
-              </p>
-            </div>
-            <Link href={`/pay/${paymentId}`}>
-              <Button className="w-full">View Payment Details</Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-    )
+    console.log("[CALLBACK] Payment already PAID")
+
+    // If paymentMethod is missing and we have a transaction ref, update it and send email
+    if (!payment.paymentMethod && (trxref || paystackRef)) {
+      const ref = trxref || paystackRef!
+      console.log("[CALLBACK] Payment method missing, updating...")
+
+      try {
+        const verification = await verifyTransaction(ref)
+
+        if (verification.data.status === "success") {
+          // Update payment method
+          await db.payment.update({
+            where: { id: payment.id },
+            data: {
+              paymentMethod: "Paystack",
+              notes: `${payment.notes || ""}\nPaystack payment confirmed: ${ref}`.trim(),
+            },
+          })
+
+          // Send email
+          try {
+            await sendPaymentConfirmationEmail(
+              payment.lease.tenant.email,
+              `${payment.lease.tenant.firstName} ${payment.lease.tenant.lastName}`,
+              payment.amount + payment.lateFee,
+              payment.lease.unit.property.user.currency,
+              payment.paidDate || new Date(verification.data.paid_at),
+              payment.lease.unit.property.name,
+              payment.lease.unit.name,
+              ref
+            )
+            console.log("[CALLBACK] Email sent successfully!")
+          } catch (emailError) {
+            console.error("[CALLBACK] Failed to send email:", emailError)
+          }
+        }
+      } catch (error) {
+        console.error("[CALLBACK] Error updating payment method:", error)
+      }
+    }
+
+    redirect("/tenant-portal/payments")
   }
 
   // If we have a transaction reference, verify with Paystack
   if (trxref || paystackRef) {
     const ref = trxref || paystackRef!
+    console.log("[CALLBACK] Verifying payment with Paystack, ref:", ref)
 
     try {
       // Verify transaction with Paystack
       const verification = await verifyTransaction(ref)
+      console.log("[CALLBACK] Verification result:", verification.data.status)
 
       if (verification.data.status === "success") {
+        console.log("[CALLBACK] Payment successful, updating database...")
+
         // Update payment in database
         await db.payment.update({
-          where: { id: paymentId },
+          where: { id: payment.id },
           data: {
             status: "PAID",
             paidDate: new Date(verification.data.paid_at),
+            paymentMethod: "Paystack",
             notes: `${payment.notes || ""}\nPaystack payment confirmed: ${ref}`.trim(),
           },
         })
 
-        // Redirect to payment page to show success
-        redirect(`/pay/${paymentId}`)
+        console.log("[CALLBACK] Database updated successfully")
+
+        // Send payment confirmation email
+        console.log("[CALLBACK] Sending confirmation email to:", payment.lease.tenant.email)
+        try {
+          await sendPaymentConfirmationEmail(
+            payment.lease.tenant.email,
+            `${payment.lease.tenant.firstName} ${payment.lease.tenant.lastName}`,
+            payment.amount + payment.lateFee,
+            payment.lease.unit.property.user.currency,
+            new Date(verification.data.paid_at),
+            payment.lease.unit.property.name,
+            payment.lease.unit.name,
+            ref
+          )
+          console.log("[CALLBACK] Email sent successfully!")
+        } catch (emailError) {
+          console.error("[CALLBACK] Failed to send payment confirmation email:", emailError)
+          // Don't fail the payment if email fails
+        }
+
+        // Redirect to tenant payments page
+        console.log("[CALLBACK] Redirecting to payments page...")
+        redirect("/tenant-portal/payments")
       } else {
         // Payment failed or abandoned
         return (
@@ -122,7 +183,7 @@ export default async function CallbackPage({
                 <p className="text-gray-600">
                   {verification.data.gateway_response || "Your payment could not be processed."}
                 </p>
-                <Link href={`/pay/${paymentId}`}>
+                <Link href={`/pay/${paymentReference}`}>
                   <Button className="w-full">Try Again</Button>
                 </Link>
               </CardContent>
@@ -131,6 +192,11 @@ export default async function CallbackPage({
         )
       }
     } catch (error) {
+      // Re-throw NEXT_REDIRECT errors (these are intentional redirects)
+      if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+        throw error
+      }
+
       console.error("Payment verification error:", error)
       return (
         <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -143,7 +209,7 @@ export default async function CallbackPage({
               <p className="text-gray-600">
                 We couldn't verify your payment. Please contact support.
               </p>
-              <Link href={`/pay/${paymentId}`}>
+              <Link href={`/pay/${paymentReference}`}>
                 <Button className="w-full">Back to Payment</Button>
               </Link>
             </CardContent>
@@ -165,7 +231,7 @@ export default async function CallbackPage({
           <p className="text-gray-600 mb-4">
             Please wait while we confirm your payment.
           </p>
-          <Link href={`/pay/${paymentId}`}>
+          <Link href={`/pay/${paymentReference}`}>
             <Button variant="outline" className="w-full">
               Check Payment Status
             </Button>

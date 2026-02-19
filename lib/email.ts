@@ -25,17 +25,33 @@ interface EmailOptions {
  */
 export async function sendEmail({ to, subject, html, from }: EmailOptions) {
   try {
-    const data = await resend.emails.send({
+    // Log configuration for debugging
+    console.log("Resend Config:", {
+      hasApiKey: !!process.env.RESEND_API_KEY,
+      apiKeyLength: process.env.RESEND_API_KEY?.length,
+      fromEmail: FROM_EMAIL,
+    })
+
+    const response = await resend.emails.send({
       from: from || FROM_EMAIL,
       to: [to],
       subject,
       html,
     })
 
-    console.log("Email sent successfully:", { to, subject, id: data.id })
-    return { success: true, id: data.id }
+    // Log full response for debugging
+    console.log("Resend Response:", JSON.stringify(response, null, 2))
+
+    // Check for errors
+    if (response.error) {
+      throw new Error(response.error.message || "Failed to send email")
+    }
+
+    console.log("Email sent successfully:", { to, subject, id: response.data?.id })
+    return { success: true, id: response.data?.id }
   } catch (error) {
     console.error("Failed to send email:", error)
+    console.error("Error details:", JSON.stringify(error, null, 2))
     return { success: false, error }
   }
 }

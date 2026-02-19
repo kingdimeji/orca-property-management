@@ -118,20 +118,91 @@
   - ✅ CSV and PDF export functional
   - ✅ Multi-currency display working
 
-### 3. Tenant Portal (Basic) ⚡ WEEK 3
-- **Status**: Not Started
+### 3. Tenant Portal (Basic) ⚡ WEEK 3 ✅ COMPLETE
+- **Status**: ✅ Complete (Feb 19, 2026)
 - **Priority**: 🔴 P0 - CRITICAL GAP
 - **Impact**: All major competitors have tenant portals
-- **Timeline**: Week 3 (5-7 days)
+- **Timeline**: Week 3 (Completed)
 - **Tasks**:
-  - [ ] Tenant authentication flow
-  - [ ] Tenant dashboard
-  - [ ] View lease details
-  - [ ] View payment history
-  - [ ] Submit maintenance requests
-  - [ ] Initiate online payments
-- **Dependencies**: Payment system must exist
-- **Success Criteria**: Tenants can self-serve basic tasks
+  - [x] Tenant authentication flow ✅
+  - [x] Tenant dashboard ✅
+  - [x] View lease details ✅
+  - [x] View payment history ✅
+  - [x] Submit maintenance requests ✅
+  - [x] Initiate online payments ✅
+  - [x] Email notifications (invites, payment confirmation, maintenance) ✅
+- **Dependencies**: ✅ Payment system complete
+- **Success Criteria**: ✅ Tenants can self-serve basic tasks
+
+---
+
+## 🟡 High Priority - Post-MVP Enhancements (P1)
+
+### Week 4: Payment & Expense Enhancements
+
+#### 3.1 Payment Categories
+- **Status**: Not Started
+- **Priority**: 🟡 P1 - HIGH VALUE
+- **Impact**: Better payment organization and reporting
+- **Timeline**: Week 4 (2-3 days)
+- **Tasks**:
+  - [ ] Add `paymentType` enum to Payment model
+    - RENT, ELECTRICITY, WATER, GAS, INTERNET, MAINTENANCE, SECURITY_DEPOSIT, LATE_FEE, OTHER
+  - [ ] Update payment creation forms with type dropdown
+  - [ ] Filter/group payments by type in history views
+  - [ ] Show payment breakdown by category in tenant portal
+  - [ ] Update payment history displays to show type
+  - [ ] Add payment type to financial reports
+- **Dependencies**: None
+- **Success Criteria**: Payments categorized, reports show breakdown by type
+
+#### 3.2 Link Expenses to Maintenance Requests
+- **Status**: Not Started
+- **Priority**: 🟡 P1 - HIGH VALUE
+- **Impact**: Better cost tracking and accountability
+- **Timeline**: Week 4 (2-3 days)
+- **Tasks**:
+  - [ ] Add optional `maintenanceRequestId` field to Expense model
+  - [ ] Update expense creation form with maintenance request selector
+  - [ ] Show linked expenses in maintenance request detail view
+  - [ ] Add "Create Expense" quick action in maintenance detail page
+  - [ ] Filter expenses by maintenance request
+  - [ ] Show total maintenance costs in reports
+- **Dependencies**: Maintenance request system complete
+- **Success Criteria**: Expenses trackable per maintenance issue
+
+#### 3.3 Shared Property Expenses (Cost Splitting)
+- **Status**: Not Started
+- **Priority**: 🟡 P1 - CRITICAL OPERATIONAL NEED
+- **Impact**: Essential for multi-unit properties with shared costs
+- **Timeline**: Week 5-6 (5-7 days)
+- **Use Cases**:
+  - Water bill for entire building split among all units
+  - Common area maintenance costs
+  - Shared utility expenses (electricity for common areas, security)
+  - Property-wide services (cleaning, gardening, security guard)
+- **How It Works**:
+  1. Landlord records a property-level expense
+  2. System calculates split (equal, by unit size, or custom percentage)
+  3. Creates pending payments for each tenant automatically
+  4. Tracks individual payment status
+- **Tasks**:
+  - [ ] Add property-level expense flag
+  - [ ] Implement cost-sharing calculation engine
+    - Equal split (divide by number of units)
+    - By square footage (proportional)
+    - Custom percentage per unit
+  - [ ] Bulk payment creation for all tenants in property
+  - [ ] Individual payment tracking per tenant
+  - [ ] Reporting showing original expense and splits
+  - [ ] Handle prorating for partial-month tenancies
+- **Technical Considerations**:
+  - May need PaymentSplit junction table: `{ paymentId, expenseId, percentage, amount }`
+  - Complex calculation logic for different split methods
+  - Need to handle vacant units (exclude or include?)
+  - Prorating for tenants who moved in/out mid-month
+- **Dependencies**: Payment categories (helps distinguish shared costs)
+- **Success Criteria**: Landlord can create one expense, system auto-creates payments for all tenants
 
 ---
 

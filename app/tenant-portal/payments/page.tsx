@@ -2,7 +2,6 @@ import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import {
   DollarSign,
   Calendar,
@@ -12,7 +11,7 @@ import {
   Download,
 } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
-import Link from "next/link"
+import { PayNowButton } from "./pay-now-button"
 
 export default async function TenantPaymentsPage() {
   const session = await auth()
@@ -262,14 +261,7 @@ export default async function TenantPaymentsPage() {
                           </a>
                         ) : payment.status === "PENDING" ||
                           payment.status === "OVERDUE" ? (
-                          <Link href={`/pay/${payment.reference}`}>
-                            <Button
-                              size="sm"
-                              className="bg-teal-600 hover:bg-teal-700"
-                            >
-                              Pay Now
-                            </Button>
-                          </Link>
+                          <PayNowButton paymentId={payment.id} />
                         ) : (
                           <span className="text-sm text-gray-400">-</span>
                         )}

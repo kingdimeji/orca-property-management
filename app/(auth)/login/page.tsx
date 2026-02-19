@@ -32,7 +32,15 @@ export default function LoginPage() {
       if (result?.error) {
         setError("Invalid email or password")
       } else {
-        router.push("/dashboard")
+        // Fetch session to determine role
+        const response = await fetch("/api/auth/session")
+        const session = await response.json()
+
+        if (session?.user?.role === "TENANT") {
+          router.push("/tenant-portal")
+        } else {
+          router.push("/dashboard")
+        }
         router.refresh()
       }
     } catch (error) {

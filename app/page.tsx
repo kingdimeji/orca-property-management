@@ -5,7 +5,11 @@ export default async function Home() {
   const session = await auth()
 
   if (session) {
-    redirect("/dashboard")
+    if (session.user.role === "TENANT") {
+      redirect("/tenant-portal")
+    } else {
+      redirect("/dashboard")
+    }
   } else {
     redirect("/login")
   }

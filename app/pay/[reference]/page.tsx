@@ -1,5 +1,6 @@
 import { db } from "@/lib/db"
 import { notFound, redirect } from "next/navigation"
+import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import {
@@ -23,8 +24,8 @@ export default async function PaymentPage({ params }: PaymentPageProps) {
   const { reference } = await params
 
   // Fetch payment with full details
-  const payment = await db.payment.findUnique({
-    where: { id: reference },
+  const payment = await db.payment.findFirst({
+    where: { reference: reference },
     include: {
       lease: {
         include: {
@@ -109,6 +110,10 @@ export default async function PaymentPage({ params }: PaymentPageProps) {
                 Thank you for your payment! If you have any questions, please contact your landlord.
               </p>
             </div>
+
+            <Link href="/tenant-portal/payments" className="block mt-6">
+              <Button className="w-full">Return to Payment History</Button>
+            </Link>
           </CardContent>
         </Card>
       </div>

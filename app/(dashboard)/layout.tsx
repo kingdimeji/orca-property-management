@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { auth } from "@/lib/auth"
+import { auth, signOut } from "@/lib/auth"
 import Link from "next/link"
 import type { NavigationItem } from "@/types/prisma"
 import {
@@ -23,6 +23,11 @@ export default async function DashboardLayout({
 
   if (!session) {
     redirect("/login")
+  }
+
+  // Prevent tenants from accessing landlord dashboard
+  if (session.user.role === "TENANT") {
+    redirect("/tenant-portal")
   }
 
   const navigation: NavigationItem[] = [
@@ -81,10 +86,20 @@ export default async function DashboardLayout({
               <Settings className="w-4 h-4 mr-2" />
               Settings
             </Link>
-            <button className="flex items-center w-full px-4 py-2 text-sm text-red-600 rounded-lg hover:bg-red-50">
-              <LogOut className="w-4 h-4 mr-2" />
-              Sign out
-            </button>
+            <form
+              action={async () => {
+                "use server"
+                await signOut()
+              }}
+            >
+              <button
+                type="submit"
+                className="flex items-center w-full px-4 py-2 text-sm text-red-600 rounded-lg hover:bg-red-50"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign out
+              </button>
+            </form>
           </div>
         </div>
       </div>
