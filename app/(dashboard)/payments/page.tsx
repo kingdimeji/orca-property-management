@@ -28,11 +28,7 @@ export default async function PaymentsPage() {
       lease: {
         include: {
           tenant: true,
-          unit: {
-            include: {
-              property: true,
-            },
-          },
+          unit: true,
         },
       },
     },

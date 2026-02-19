@@ -37,11 +37,7 @@ export default async function TenantDetailsPage({
     include: {
       leases: {
         include: {
-          unit: {
-            include: {
-              property: true,
-            },
-          },
+          unit: true,
           payments: {
             orderBy: {
               dueDate: "desc",
