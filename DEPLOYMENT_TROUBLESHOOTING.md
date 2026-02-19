@@ -170,6 +170,67 @@ grep -r "params: { id:" app/api/
 find app/api -path "*/\[*\]/route.ts"
 ```
 
+### 2. `useSearchParams()` Requires Suspense Boundary
+
+#### The Problem
+In Next.js 15, client components using `useSearchParams()` cause prerendering errors unless wrapped in a Suspense boundary.
+
+**Error:**
+```
+Error occurred prerendering page "/some-page"
+Export encountered an error on /some-page, exiting the build
+```
+
+#### Solution: Wrap in Suspense
+
+**❌ WRONG - Direct useSearchParams usage:**
+```typescript
+"use client"
+import { useSearchParams } from "next/navigation"
+
+export default function MyPage() {
+  const searchParams = useSearchParams()  // ❌ Causes build error
+  const token = searchParams.get("token")
+  // ...
+}
+```
+
+**✅ CORRECT - Suspense boundary:**
+```typescript
+"use client"
+import { Suspense } from "react"
+import { useSearchParams } from "next/navigation"
+
+function MyPageContent() {
+  const searchParams = useSearchParams()  // ✅ Inside Suspense
+  const token = searchParams.get("token")
+  // ...
+}
+
+export default function MyPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <MyPageContent />
+    </Suspense>
+  )
+}
+```
+
+#### Key Points
+- Split component into two: wrapper (no useSearchParams) and content (uses useSearchParams)
+- Wrapper exports the default, content is wrapped in Suspense
+- `export const dynamic = 'force-dynamic'` alone is NOT sufficient
+- This is a **breaking change** from Next.js 14
+
+#### How to Find and Fix
+```bash
+# Search for useSearchParams usage
+grep -r "useSearchParams" app/
+
+# Check if they're wrapped in Suspense
+# Look for files with useSearchParams but no Suspense import
+```
+
 ---
 
 ## Prisma Configuration
@@ -213,6 +274,61 @@ export default defineConfig({
   },
 });
 ```
+
+### Prisma 7 Schema URL Requirement
+
+#### The Problem
+Prisma 7 changed where datasource URLs should be configured. URLs in `schema.prisma` now cause validation errors.
+
+**Error:**
+```
+Error: Prisma schema validation - (get-config wasm)
+Error code: P1012
+The datasource property `url` is no longer supported in schema files
+```
+
+#### Solution: Remove URL from schema.prisma
+
+**❌ WRONG (Prisma 6 style):**
+```prisma
+// prisma/schema.prisma
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")      // ❌ Not allowed in Prisma 7
+  directUrl = env("DIRECT_URL")        // ❌ Not allowed in Prisma 7
+}
+```
+
+**✅ CORRECT (Prisma 7):**
+```prisma
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"  // ✅ Only provider, no URLs
+}
+```
+
+**URLs go in `prisma.config.ts`:**
+```typescript
+// prisma.config.ts
+import "dotenv/config"
+import { defineConfig } from "prisma/config"
+
+export default defineConfig({
+  schema: "prisma/schema.prisma",
+  migrations: {
+    path: "prisma/migrations",
+  },
+  datasource: {
+    url: process.env["DATABASE_URL"]!,  // ✅ URL configured here
+  },
+})
+```
+
+#### Migration Steps
+1. Remove `url` and `directUrl` from `prisma/schema.prisma`
+2. Keep only `provider` in datasource block
+3. Ensure `prisma.config.ts` has the URL configuration
+4. Verify `.env` still has DATABASE_URL and DIRECT_URL
 
 ---
 
