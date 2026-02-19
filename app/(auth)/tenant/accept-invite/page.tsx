@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
+
+// Force dynamic rendering since we use searchParams
+export const dynamic = 'force-dynamic'
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
