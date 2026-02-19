@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { randomBytes, createHash } from "crypto"
+import { sendTenantInviteEmail } from "@/lib/email"
 
 export const runtime = "nodejs"
 
@@ -32,7 +33,11 @@ export async function POST(
       include: {
         leases: {
           include: {
-            unit: true,
+            unit: {
+              include: {
+                property: true,
+              },
+            },
           },
           orderBy: { startDate: "desc" },
           take: 1,
@@ -86,13 +91,32 @@ export async function POST(
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
     const inviteLink = `${baseUrl}/tenant/accept-invite?token=${rawToken}`
 
-    // TODO: Send email with invite link
-    // For MVP, we'll return the link directly
-    // In production, use an email service (SendGrid, Resend, etc.)
+    // Get landlord's name from session
+    const landlordName = session.user.name || "Your Landlord"
+
+    // Get property name from tenant's lease (if exists)
+    const latestLease = tenant.leases[0]
+    const propertyName = latestLease?.unit?.property?.name || null
+
+    // Send invite email
+    const emailResult = await sendTenantInviteEmail(
+      tenant.email,
+      `${tenant.firstName} ${tenant.lastName}`,
+      landlordName,
+      propertyName,
+      inviteLink,
+      expiryDate
+    )
+
+    if (!emailResult.success) {
+      return NextResponse.json(
+        { message: "Failed to send invite email" },
+        { status: 500 }
+      )
+    }
 
     return NextResponse.json({
       message: "Invite sent successfully",
-      inviteLink, // Remove this in production
       expiresAt: expiryDate.toISOString(),
       tenant: {
         email: tenant.email,

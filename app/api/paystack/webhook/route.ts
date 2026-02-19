@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { verifyPaystackSignature } from "@/lib/crypto-utils"
+import { sendPaymentConfirmationEmail } from "@/lib/email"
 import type { PaystackWebhookEvent } from "@/types/paystack"
 
 export async function POST(request: NextRequest) {
@@ -79,9 +80,25 @@ async function handleChargeSuccess(event: PaystackWebhookEvent) {
   const { reference, amount, paid_at } = event.data
 
   try {
-    // Find payment by reference (we use payment ID as reference)
+    // Find payment by reference with all necessary relations
     const payment = await db.payment.findFirst({
       where: { reference },
+      include: {
+        lease: {
+          include: {
+            tenant: true,
+            unit: {
+              include: {
+                property: {
+                  include: {
+                    user: true, // Landlord
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     })
 
     if (!payment) {
@@ -111,17 +128,45 @@ async function handleChargeSuccess(event: PaystackWebhookEvent) {
       return
     }
 
+    const paidDate = new Date(paid_at)
+
     // Update payment status to PAID
     await db.payment.update({
       where: { id: payment.id },
       data: {
         status: "PAID",
-        paidDate: new Date(paid_at),
+        paidDate,
         notes: `${payment.notes || ""}\nPaystack payment confirmed: ${reference}`.trim(),
       },
     })
 
     console.log(`Payment ${payment.id} marked as PAID`)
+
+    // Send payment confirmation email to tenant
+    const tenant = payment.lease.tenant
+    const unit = payment.lease.unit
+    const property = unit.property
+    const landlord = property.user
+
+    const totalAmount = payment.amount + payment.lateFee
+    const currency = landlord.currency
+
+    try {
+      await sendPaymentConfirmationEmail(
+        tenant.email,
+        `${tenant.firstName} ${tenant.lastName}`,
+        totalAmount,
+        currency,
+        paidDate,
+        property.name,
+        unit.name,
+        reference
+      )
+      console.log(`Payment confirmation email sent to ${tenant.email}`)
+    } catch (emailError) {
+      console.error("Failed to send payment confirmation email:", emailError)
+      // Don't throw - payment is still processed even if email fails
+    }
   } catch (error) {
     console.error("Error handling charge.success:", error)
     throw error

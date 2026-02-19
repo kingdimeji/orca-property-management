@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
+import { sendMaintenanceRequestEmail } from "@/lib/email"
 
 /**
  * GET /api/tenant-portal/maintenance
@@ -109,7 +110,7 @@ export async function POST(req: Request) {
 
     const activeLease = tenant.leases[0]
 
-    // Create maintenance request
+    // Create maintenance request with full relations for email
     const request = await db.maintenanceRequest.create({
       data: {
         title: title.trim(),
@@ -122,9 +123,38 @@ export async function POST(req: Request) {
         reportedBy: tenant.id,
       },
       include: {
-        unit: true,
+        unit: {
+          include: {
+            property: {
+              include: {
+                user: true, // Landlord
+              },
+            },
+          },
+        },
+        tenant: true,
       },
     })
+
+    // Send email notification to landlord
+    try {
+      const landlord = request.unit.property.user
+      await sendMaintenanceRequestEmail(
+        landlord.email,
+        landlord.name || "Landlord",
+        `${request.tenant!.firstName} ${request.tenant!.lastName}`,
+        request.unit.property.name,
+        request.unit.name,
+        request.title,
+        request.description,
+        request.priority,
+        request.id
+      )
+      console.log(`Maintenance request email sent to ${landlord.email}`)
+    } catch (emailError) {
+      console.error("Failed to send maintenance request email:", emailError)
+      // Don't throw - request is still created even if email fails
+    }
 
     return NextResponse.json(
       {
