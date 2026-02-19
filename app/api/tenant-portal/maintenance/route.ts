@@ -33,11 +33,7 @@ export async function GET(req: Request) {
     const requests = await db.maintenanceRequest.findMany({
       where: { reportedBy: tenant.id },
       include: {
-        unit: {
-          include: {
-            property: true,
-          },
-        },
+        unit: true,
       },
       orderBy: { reportedDate: "desc" },
     })
@@ -126,11 +122,7 @@ export async function POST(req: Request) {
         reportedBy: tenant.id,
       },
       include: {
-        unit: {
-          include: {
-            property: true,
-          },
-        },
+        unit: true,
       },
     })
 

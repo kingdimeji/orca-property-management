@@ -20,11 +20,7 @@ export async function GET(
       include: {
         lease: {
           include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
+            unit: true,
             tenant: true,
           },
         },
@@ -69,11 +65,7 @@ export async function PATCH(
       include: {
         lease: {
           include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
+            unit: true,
           },
         },
       },
@@ -123,11 +115,7 @@ export async function PATCH(
       include: {
         lease: {
           include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
+            unit: true,
             tenant: true,
           },
         },
@@ -163,11 +151,7 @@ export async function DELETE(
       include: {
         lease: {
           include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
+            unit: true,
           },
         },
       },

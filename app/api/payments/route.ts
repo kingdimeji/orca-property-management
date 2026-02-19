@@ -35,11 +35,7 @@ export async function POST(req: Request) {
     const lease = await db.lease.findUnique({
       where: { id: leaseId },
       include: {
-        unit: {
-          include: {
-            property: true,
-          },
-        },
+        unit: true,
       },
     })
 
@@ -67,11 +63,7 @@ export async function POST(req: Request) {
       include: {
         lease: {
           include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
+            unit: true,
             tenant: true,
           },
         },
@@ -110,11 +102,7 @@ export async function GET(req: Request) {
     const lease = await db.lease.findUnique({
       where: { id: leaseId },
       include: {
-        unit: {
-          include: {
-            property: true,
-          },
-        },
+        unit: true,
       },
     })
 
@@ -133,11 +121,7 @@ export async function GET(req: Request) {
       include: {
         lease: {
           include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
+            unit: true,
             tenant: true,
           },
         },

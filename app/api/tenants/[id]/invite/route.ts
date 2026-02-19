@@ -32,11 +32,7 @@ export async function POST(
       include: {
         leases: {
           include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
+            unit: true,
           },
           orderBy: { startDate: "desc" },
           take: 1,

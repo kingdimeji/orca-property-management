@@ -38,11 +38,7 @@ export async function GET(
     const request = await db.maintenanceRequest.findUnique({
       where: { id },
       include: {
-        unit: {
-          include: {
-            property: true,
-          },
-        },
+        unit: true,
         tenant: true,
       },
     })
@@ -138,11 +134,7 @@ export async function PATCH(
       where: { id },
       data: updateData,
       include: {
-        unit: {
-          include: {
-            property: true,
-          },
-        },
+        unit: true,
       },
     })
 

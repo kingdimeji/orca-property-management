@@ -70,11 +70,7 @@ export async function POST(req: Request) {
           status: "ACTIVE",
         },
         include: {
-          unit: {
-            include: {
-              property: true,
-            },
-          },
+          unit: true,
           tenant: true,
         },
       })
