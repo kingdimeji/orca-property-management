@@ -109,9 +109,7 @@ export function exportIncomesToCSV(
   payments: (Payment & {
     lease: {
       tenant: any
-      unit: {
-        property: Property
-      } & { name: string }
+      unit: any
     }
   })[],
   currency: string
@@ -164,9 +162,7 @@ export function exportFinancialReportToCSV(
   payments: (Payment & {
     lease: {
       tenant: any
-      unit: {
-        property: Property
-      } & { name: string }
+      unit: any
     }
   })[],
   expenses: (Expense & { property: Property | null })[],

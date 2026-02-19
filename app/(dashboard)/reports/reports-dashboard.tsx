@@ -29,9 +29,7 @@ interface ReportsDashboardProps {
   payments: (Payment & {
     lease: {
       tenant: any
-      unit: {
-        property: Property
-      }
+      unit: any
     }
   })[]
   expenses: (Expense & { property: Property | null })[]
