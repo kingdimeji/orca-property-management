@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
@@ -14,9 +14,6 @@ import {
 } from "@/components/ui/card"
 import { CheckCircle2, Loader2, XCircle } from "lucide-react"
 
-// Force dynamic rendering since we use searchParams
-export const dynamic = 'force-dynamic'
-
 interface TenantInfo {
   firstName: string
   lastName: string
@@ -25,7 +22,7 @@ interface TenantInfo {
   unitName?: string
 }
 
-export default function AcceptInvitePage() {
+function AcceptInviteContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
@@ -262,5 +259,28 @@ export default function AcceptInvitePage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+// Wrapper component with Suspense boundary (required for useSearchParams in Next.js 15)
+export default function AcceptInvitePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#f7fafc] px-4">
+          <Card className="w-full max-w-md shadow-lg">
+            <CardContent className="py-12 text-center">
+              <Loader2 className="w-16 h-16 text-[#635bff] mx-auto mb-4 animate-spin" />
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                Loading...
+              </h3>
+              <p className="text-gray-600">Please wait a moment</p>
+            </CardContent>
+          </Card>
+        </div>
+      }
+    >
+      <AcceptInviteContent />
+    </Suspense>
   )
 }
