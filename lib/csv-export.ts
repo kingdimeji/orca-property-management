@@ -3,7 +3,7 @@
  * Pure TypeScript implementation - no external dependencies
  */
 
-import type { Payment, Expense } from "@prisma/client"
+import type { Payment, Expense, Property } from "@prisma/client"
 import { formatCurrency } from "./utils"
 
 /**
@@ -69,7 +69,7 @@ export function downloadCSV(filename: string, csvContent: string): void {
  * Export expenses to CSV
  */
 export function exportExpensesToCSV(
-  expenses: (Expense & { property?: { name: string } | null })[],
+  expenses: (Expense & { property: Property | null })[],
   currency: string
 ): void {
   const data = expenses.map((expense) => ({
@@ -108,11 +108,10 @@ export function exportExpensesToCSV(
 export function exportIncomesToCSV(
   payments: (Payment & {
     lease: {
-      tenant: { firstName: string; lastName: string; email: string }
+      tenant: any
       unit: {
-        name: string
-        property: { name: string }
-      }
+        property: Property
+      } & { name: string }
     }
   })[],
   currency: string
@@ -164,14 +163,13 @@ export function exportIncomesToCSV(
 export function exportFinancialReportToCSV(
   payments: (Payment & {
     lease: {
-      tenant: { firstName: string; lastName: string }
+      tenant: any
       unit: {
-        name: string
-        property: { name: string }
-      }
+        property: Property
+      } & { name: string }
     }
   })[],
-  expenses: (Expense & { property?: { name: string } | null })[],
+  expenses: (Expense & { property: Property | null })[],
   dateRange: { startDate: Date; endDate: Date },
   currency: string
 ): void {
