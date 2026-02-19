@@ -37,7 +37,11 @@ export async function POST(request: NextRequest) {
       where: { id: leaseId },
       include: {
         tenant: true,
-        unit: true,
+        unit: {
+        include: {
+          property: true,
+        },
+      },
       },
     })
 

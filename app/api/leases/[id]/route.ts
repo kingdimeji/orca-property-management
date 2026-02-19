@@ -19,7 +19,11 @@ export async function GET(
     const lease = await db.lease.findUnique({
       where: { id },
       include: {
-        unit: true,
+        unit: {
+        include: {
+          property: true,
+        },
+      },
         tenant: true,
       },
     })
@@ -60,7 +64,11 @@ export async function PATCH(
     const lease = await db.lease.findUnique({
       where: { id },
       include: {
-        unit: true,
+        unit: {
+        include: {
+          property: true,
+        },
+      },
       },
     })
 
@@ -102,7 +110,11 @@ export async function PATCH(
             terms: terms || null,
           },
           include: {
-            unit: true,
+            unit: {
+        include: {
+          property: true,
+        },
+      },
             tenant: true,
           },
         })
@@ -141,7 +153,11 @@ export async function PATCH(
           terms: terms || null,
         },
         include: {
-          unit: true,
+          unit: {
+        include: {
+          property: true,
+        },
+      },
           tenant: true,
         },
       })
@@ -174,7 +190,11 @@ export async function DELETE(
     const lease = await db.lease.findUnique({
       where: { id },
       include: {
-        unit: true,
+        unit: {
+        include: {
+          property: true,
+        },
+      },
       },
     })
 
