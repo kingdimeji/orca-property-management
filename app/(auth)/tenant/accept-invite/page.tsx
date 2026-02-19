@@ -2,9 +2,6 @@
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-
-// Force dynamic rendering since we use searchParams
-export const dynamic = 'force-dynamic'
 import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +13,9 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { CheckCircle2, Loader2, XCircle } from "lucide-react"
+
+// Force dynamic rendering since we use searchParams
+export const dynamic = 'force-dynamic'
 
 interface TenantInfo {
   firstName: string
