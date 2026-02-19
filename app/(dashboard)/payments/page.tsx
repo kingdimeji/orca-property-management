@@ -4,16 +4,6 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, TrendingUp, AlertCircle, CheckCircle } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import type { Payment, Lease, Tenant, Unit, Property } from "@prisma/client"
-
-type PaymentWithDetails = Payment & {
-  lease: Lease & {
-    tenant: Tenant
-    unit: Unit & {
-      property: Property
-    }
-  }
-}
 
 export default async function PaymentsPage() {
   const session = await auth()
@@ -23,12 +13,16 @@ export default async function PaymentsPage() {
   }
 
   // Fetch all payments for properties owned by the user
-  const payments: PaymentWithDetails[] = await db.payment.findMany({
+  const payments = await db.payment.findMany({
     include: {
       lease: {
         include: {
           tenant: true,
-          unit: true,
+          unit: {
+            include: {
+              property: true,
+            },
+          },
         },
       },
     },
