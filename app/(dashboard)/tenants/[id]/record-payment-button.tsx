@@ -33,6 +33,7 @@ export default function RecordPaymentButton({
     const dueDate = formData.get("dueDate") as string
     const paidDate = formData.get("paidDate") as string
     const paymentMethod = formData.get("paymentMethod") as string
+    const paymentType = formData.get("paymentType") as string
     const reference = formData.get("reference") as string
     const lateFee = formData.get("lateFee") as string
     const status = formData.get("status") as string
@@ -50,6 +51,7 @@ export default function RecordPaymentButton({
           dueDate,
           paidDate: paidDate || null,
           paymentMethod: paymentMethod || null,
+          paymentType: paymentType || "RENT",
           reference: reference || null,
           lateFee: lateFee ? parseFloat(lateFee) : 0,
           status,
@@ -204,6 +206,33 @@ export default function RecordPaymentButton({
                     <option value="CANCELLED">Cancelled</option>
                   </select>
                 </div>
+              </div>
+
+              {/* Payment Type Row */}
+              <div className="space-y-2">
+                <Label htmlFor="paymentType">
+                  Payment Type <span className="text-red-500">*</span>
+                </Label>
+                <select
+                  id="paymentType"
+                  name="paymentType"
+                  required
+                  defaultValue="RENT"
+                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm ring-offset-white focus:outline-none focus:ring-2 focus:ring-[#635bff] focus:ring-offset-2"
+                >
+                  <option value="RENT">Rent</option>
+                  <option value="ELECTRICITY">Electricity</option>
+                  <option value="WATER">Water</option>
+                  <option value="GAS">Gas</option>
+                  <option value="INTERNET">Internet</option>
+                  <option value="MAINTENANCE">Maintenance</option>
+                  <option value="SECURITY_DEPOSIT">Security Deposit</option>
+                  <option value="LATE_FEE">Late Fee</option>
+                  <option value="OTHER">Other</option>
+                </select>
+                <p className="text-xs text-[#718096]">
+                  What this payment is for
+                </p>
               </div>
 
               {/* Reference */}

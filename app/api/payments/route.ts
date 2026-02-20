@@ -18,6 +18,7 @@ export async function POST(req: Request) {
       paidDate,
       status,
       paymentMethod,
+      paymentType,
       reference,
       lateFee,
       notes,
@@ -27,6 +28,18 @@ export async function POST(req: Request) {
     if (!leaseId || amount === undefined || !dueDate || !status) {
       return NextResponse.json(
         { message: "Lease ID, amount, due date, and status are required" },
+        { status: 400 }
+      )
+    }
+
+    // Validate paymentType
+    const validPaymentTypes = [
+      "RENT", "ELECTRICITY", "WATER", "GAS", "INTERNET",
+      "MAINTENANCE", "SECURITY_DEPOSIT", "LATE_FEE", "OTHER"
+    ]
+    if (paymentType && !validPaymentTypes.includes(paymentType)) {
+      return NextResponse.json(
+        { message: "Invalid payment type" },
         { status: 400 }
       )
     }
@@ -60,6 +73,7 @@ export async function POST(req: Request) {
         paidDate: paidDate ? new Date(paidDate) : null,
         status,
         paymentMethod: paymentMethod || null,
+        paymentType: paymentType || "RENT",
         reference: reference || null,
         lateFee: lateFee ? parseFloat(lateFee) : 0,
         notes: notes || null,

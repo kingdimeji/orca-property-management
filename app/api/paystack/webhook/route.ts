@@ -161,7 +161,8 @@ async function handleChargeSuccess(event: PaystackWebhookEvent) {
         paidDate,
         property.name,
         unit.name,
-        reference
+        reference,
+        payment.paymentType
       )
       console.log(`Payment confirmation email sent to ${tenant.email}`)
     } catch (emailError) {

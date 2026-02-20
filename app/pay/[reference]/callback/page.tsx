@@ -107,7 +107,8 @@ export default async function CallbackPage({
               payment.paidDate || new Date(verification.data.paid_at),
               payment.lease.unit.property.name,
               payment.lease.unit.name,
-              ref
+              ref,
+              payment.paymentType
             )
             console.log("[CALLBACK] Email sent successfully!")
           } catch (emailError) {
@@ -159,7 +160,8 @@ export default async function CallbackPage({
             new Date(verification.data.paid_at),
             payment.lease.unit.property.name,
             payment.lease.unit.name,
-            ref
+            ref,
+            payment.paymentType
           )
           console.log("[CALLBACK] Email sent successfully!")
         } catch (emailError) {

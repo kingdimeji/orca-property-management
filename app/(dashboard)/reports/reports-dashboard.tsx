@@ -21,6 +21,7 @@ import {
 } from "@/lib/reports"
 import TimeRangeSelector from "./time-range-selector"
 import PropertySelector from "./property-selector"
+import IncomeBreakdownTable from "./income-breakdown-table"
 import ExpenseBreakdownTable from "./expense-breakdown-table"
 import PropertyMetricsTable from "./property-metrics-table"
 import ExportMenu from "./export-menu"
@@ -236,6 +237,12 @@ export default function ReportsDashboard({
           </CardContent>
         </Card>
       </div>
+
+      {/* Income Breakdown */}
+      <IncomeBreakdownTable
+        payments={filteredPayments}
+        currency={currency}
+      />
 
       {/* Expense Breakdown */}
       <ExpenseBreakdownTable

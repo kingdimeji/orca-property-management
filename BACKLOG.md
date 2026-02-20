@@ -1,7 +1,7 @@
 # Orca Property Management - Backlog
 
-**Last Updated**: February 18, 2026
-**Next Milestone**: Week 3 - Tenant Portal (Basic)
+**Last Updated**: February 20, 2026
+**Next Milestone**: Week 4 - Mobile Responsiveness & Post-MVP Enhancements
 
 > **See [ROADMAP.md](ROADMAP.md) for strategic vision, pricing strategy, market positioning, and success metrics**
 
@@ -140,23 +140,44 @@
 
 ### Week 4: Payment & Expense Enhancements
 
-#### 3.1 Payment Categories
-- **Status**: Not Started
+#### 3.1 Payment Categories ✅ COMPLETE
+- **Status**: ✅ Complete (Feb 20, 2026)
 - **Priority**: 🟡 P1 - HIGH VALUE
 - **Impact**: Better payment organization and reporting
-- **Timeline**: Week 4 (2-3 days)
+- **Timeline**: Completed in 1 day
 - **Tasks**:
-  - [ ] Add `paymentType` enum to Payment model
+  - [x] Add `paymentType` enum to Payment model ✅
     - RENT, ELECTRICITY, WATER, GAS, INTERNET, MAINTENANCE, SECURITY_DEPOSIT, LATE_FEE, OTHER
-  - [ ] Update payment creation forms with type dropdown
-  - [ ] Filter/group payments by type in history views
-  - [ ] Show payment breakdown by category in tenant portal
-  - [ ] Update payment history displays to show type
-  - [ ] Add payment type to financial reports
+  - [x] Update payment creation forms with type dropdown ✅
+  - [x] Update payment history displays to show type badges ✅
+  - [x] Add payment type to financial reports (Income Breakdown by Type) ✅
+  - [x] Update CSV exports to include payment type column ✅
+  - [x] Update email confirmations to show payment type ✅
+  - [x] Created lib/payment-utils.ts with formatting functions ✅
 - **Dependencies**: None
-- **Success Criteria**: Payments categorized, reports show breakdown by type
+- **Success Criteria**: ✅ Payments categorized, colored badges, reports show breakdown by type
 
-#### 3.2 Link Expenses to Maintenance Requests
+#### 3.2 Mobile Responsiveness (Basic) 📱 CRITICAL
+- **Status**: Not Started
+- **Priority**: 🔴 P0 - CRITICAL FOR MARKET
+- **Impact**: Nigerian market is mobile-first (60%+ mobile users)
+- **Timeline**: Week 4 (3-4 days)
+- **Why Now**: Build mobile-first from now on, prevents massive refactoring later
+- **Tasks**:
+  - [ ] Responsive tables (horizontal scroll or card layout on mobile)
+  - [ ] Mobile-friendly forms (larger touch targets, proper spacing)
+  - [ ] Responsive navigation (hamburger menu)
+  - [ ] Touch-friendly buttons (min 44px tap targets)
+  - [ ] Mobile viewport configuration
+  - [ ] Test critical flows on mobile devices
+  - [ ] Responsive dashboard cards (stack on mobile)
+  - [ ] Mobile-optimized payment pages
+  - [ ] Tenant portal mobile experience
+- **Dependencies**: None
+- **Success Criteria**: App usable on mobile devices, all critical flows work on 375px width
+- **Note**: PWA features (offline, install, push) deferred to Week 10-11
+
+#### 3.3 Link Expenses to Maintenance Requests
 - **Status**: Not Started
 - **Priority**: 🟡 P1 - HIGH VALUE
 - **Impact**: Better cost tracking and accountability
@@ -171,11 +192,11 @@
 - **Dependencies**: Maintenance request system complete
 - **Success Criteria**: Expenses trackable per maintenance issue
 
-#### 3.3 Shared Property Expenses (Cost Splitting)
+#### 3.4 Shared Property Expenses (Cost Splitting)
 - **Status**: Not Started
 - **Priority**: 🟡 P1 - CRITICAL OPERATIONAL NEED
 - **Impact**: Essential for multi-unit properties with shared costs
-- **Timeline**: Week 5-6 (5-7 days)
+- **Timeline**: Week 5 (5-7 days)
 - **Use Cases**:
   - Water bill for entire building split among all units
   - Common area maintenance costs
@@ -208,11 +229,11 @@
 
 ## 🟡 High Priority - Competitive Advantages (P1)
 
-### 4. Nigerian Payment Ecosystem (WEEK 4)
+### 4. Nigerian Payment Ecosystem (WEEK 6)
 - **Status**: Not Started
 - **Priority**: 🟡 P1 - DIFFERENTIATOR
 - **Impact**: Better than Nigerian competitors, more relevant than global players
-- **Timeline**: Week 4 (3-5 days)
+- **Timeline**: Week 6 (3-5 days)
 - **Tasks**:
   - [ ] Flutterwave integration (secondary payment provider)
   - [ ] Service charge tracking (Nigerian estates)
@@ -222,11 +243,11 @@
 - **Dependencies**: Paystack integration complete
 - **Success Criteria**: Multi-provider support, Nigerian-specific features working
 
-### 5. WhatsApp Integration (WEEK 5) 🇳🇬 UNIQUE
+### 5. WhatsApp Integration (WEEK 7) 🇳🇬 UNIQUE
 - **Status**: Not Started
 - **Priority**: 🟡 P1 - UNIQUE DIFFERENTIATOR
 - **Impact**: No competitor has this
-- **Timeline**: Week 5 (4-6 days)
+- **Timeline**: Week 7 (4-6 days)
 - **Tasks**:
   - [ ] WhatsApp Business API setup
   - [ ] Payment reminders via WhatsApp
@@ -487,25 +508,31 @@
 - **Success Color**: `#00d4aa` (Green)
 - **Gray Scale**: `#f7fafc` → `#0a2540`
 
-### Current Focus (Based on Competitive Analysis)
+### Current Focus (Revised February 20, 2026)
 
-**IMMEDIATE** (This Week):
-1. Fix form issues (waiting for user's list)
-2. Then START Week 1: Payment Integration (Paystack)
+**COMPLETED** (Weeks 1-3):
+1. ✅ Week 1: Payment Collection (Paystack integration)
+2. ✅ Week 2: Financial Reports
+3. ✅ Week 3: Tenant Portal
+4. ✅ Payment Categories (Feb 20, 2026)
 
-**SHORT-TERM** (Weeks 1-3):
-1. Week 1: Payment Collection ⚡
-2. Week 2: Financial Reports ⚡
-3. Week 3: Tenant Portal ⚡
+**IMMEDIATE** (Week 4 - Current):
+1. **Mobile Responsiveness** (3-4 days) ← NEXT
+2. Link Expenses to Maintenance (2-3 days)
 
-**MEDIUM-TERM** (Weeks 4-9):
-1. Nigerian differentiation (Paystack, WhatsApp, Estate features)
-2. Maintenance management
-3. Document storage
-4. Communication tools
+**SHORT-TERM** (Weeks 5-7):
+1. Week 5: Shared Property Expenses (Cost Splitting)
+2. Week 6: Nigerian Payment Ecosystem
+3. Week 7: WhatsApp Integration 🇳🇬
 
-**LONG-TERM** (Weeks 10-16+):
-1. Mobile PWA
+**MEDIUM-TERM** (Weeks 8-11):
+1. Estate/Compound Management
+2. Maintenance Management (enhanced)
+3. Document Storage
+4. Mobile PWA (full implementation)
+
+**LONG-TERM** (Weeks 12-16+):
+1. Communication tools
 2. AI-powered insights
 3. Advanced analytics
 4. Launch preparation
@@ -548,3 +575,9 @@
 - **2026-02-13**: Decided to do design overhaul before tenant portal
 - **2026-02-13**: Identified need for better workflow to prevent breaking changes
 - **2026-02-13**: Confirmed multi-currency as unique strategic advantage
+- **2026-02-20**: Completed Payment Categories feature (paymentType enum)
+- **2026-02-20**: Decided to prioritize Mobile Responsiveness NOW (Week 4) instead of deferring to Week 10
+  - **Rationale**: Nigerian market is mobile-first (60%+ users), building mobile-responsive now prevents massive refactoring later
+  - **Impact**: All future features will be mobile-friendly from the start
+  - **Trade-off**: Delays other features by 3-4 days, but saves time long-term
+  - **Strategy**: Basic responsiveness now (Week 4), full PWA features later (Week 10-11)

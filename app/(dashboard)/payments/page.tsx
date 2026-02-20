@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, TrendingUp, AlertCircle, CheckCircle } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatPaymentType, getPaymentTypeBadgeColor } from "@/lib/payment-utils"
 
 export default async function PaymentsPage() {
   const session = await auth()
@@ -183,6 +184,9 @@ export default async function PaymentsPage() {
                       Property / Unit
                     </th>
                     <th className="text-left py-3 px-4 font-medium text-gray-600">
+                      Type
+                    </th>
+                    <th className="text-left py-3 px-4 font-medium text-gray-600">
                       Due Date
                     </th>
                     <th className="text-left py-3 px-4 font-medium text-gray-600">
@@ -221,6 +225,11 @@ export default async function PaymentsPage() {
                         <div className="text-xs text-gray-500">
                           {payment.lease.unit.name}
                         </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentTypeBadgeColor(payment.paymentType)}`}>
+                          {formatPaymentType(payment.paymentType)}
+                        </span>
                       </td>
                       <td className="py-4 px-4 text-gray-900">
                         {formatDate(payment.dueDate)}

@@ -2,6 +2,7 @@
 
 import type { Payment } from "@prisma/client"
 import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatPaymentType, getPaymentTypeBadgeColor } from "@/lib/payment-utils"
 
 interface PaymentHistorySectionProps {
   payments: Payment[]
@@ -49,6 +50,7 @@ export default function PaymentHistorySection({
             <tr className="border-b border-gray-200">
               <th className="text-left py-2 px-2 font-medium text-gray-600">Due Date</th>
               <th className="text-left py-2 px-2 font-medium text-gray-600">Amount</th>
+              <th className="text-left py-2 px-2 font-medium text-gray-600">Type</th>
               <th className="text-left py-2 px-2 font-medium text-gray-600">Paid Date</th>
               <th className="text-left py-2 px-2 font-medium text-gray-600">Status</th>
               <th className="text-left py-2 px-2 font-medium text-gray-600">Method</th>
@@ -65,6 +67,11 @@ export default function PaymentHistorySection({
                       (+{formatCurrency(payment.lateFee, currency)} late fee)
                     </span>
                   )}
+                </td>
+                <td className="py-3 px-2">
+                  <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentTypeBadgeColor(payment.paymentType)}`}>
+                    {formatPaymentType(payment.paymentType)}
+                  </span>
                 </td>
                 <td className="py-3 px-2">
                   {payment.paidDate ? formatDate(payment.paidDate) : (

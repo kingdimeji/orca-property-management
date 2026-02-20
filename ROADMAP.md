@@ -1,7 +1,7 @@
 # Orca Property Management - Development Roadmap
 
-**Last Updated**: February 19, 2026
-**Version**: 3.0 (MVP Complete - Market Ready)
+**Last Updated**: February 20, 2026
+**Version**: 3.1 (MVP Complete + Payment Categories - Mobile Optimization In Progress)
 
 > **See [BACKLOG.md](BACKLOG.md) for detailed feature tasks and development tracking**
 > **See [COMPETITIVE_ANALYSIS.md](COMPETITIVE_ANALYSIS.md) for full market research**
@@ -85,99 +85,122 @@ Build the best property management software for small landlords (1-10 units) in 
 
 ---
 
-### Phase 3: Nigerian Market Differentiation (Weeks 4-6)
+### Phase 3: Mobile & Post-MVP Enhancements (Weeks 4-7)
 
-> **Goal**: Add features that make us better than Nigerian competitors and more relevant than global players.
+> **Goal**: Ensure mobile responsiveness (60%+ of Nigerian users are mobile-first), complete post-MVP features, then add Nigerian market differentiators.
 
 **Features**:
-1. **Week 4: Nigerian Payment Ecosystem**
+1. **Week 4: Payment Categories + Mobile Responsiveness** 📱 CRITICAL
+   - [x] Payment Categories & Types ✅ (Feb 20, 2026)
+     - Added paymentType enum (RENT, ELECTRICITY, WATER, GAS, etc.)
+     - Updated all payment forms and displays
+     - Income breakdown by payment type in reports
+     - CSV exports include payment type
+   - [ ] Mobile Responsiveness (Basic) - IN PROGRESS
+     - Responsive navigation and layouts
+     - Touch-friendly buttons and forms
+     - Mobile-optimized tables and cards
+     - Test on mobile devices (iOS Safari, Android Chrome)
+   - [ ] Link Expenses to Maintenance Requests
+     - Track costs per maintenance request
+     - View expense history for units/properties
+
+2. **Week 5: Shared Property Expenses**
+   - Expense allocation across units
+   - Percentage-based or equal splitting
+   - Track shared vs unit-specific costs
+   - Generate expense reports per unit
+
+3. **Week 6: Nigerian Payment Ecosystem**
    - Flutterwave integration (secondary provider)
    - Service charge tracking for estates
    - Agent commission calculator
    - Automated payment reminders (email + SMS)
 
-2. **Week 5: WhatsApp Integration** 🇳🇬 UNIQUE
+4. **Week 7: WhatsApp Integration** 🇳🇬 UNIQUE
    - WhatsApp Business API setup
    - Automated notifications (payments, maintenance, lease renewals)
    - Two-way communication (optional)
 
-3. **Week 6: Estate/Compound Management** 🇳🇬 UNIQUE
-   - Estate grouping and announcements
-   - Shared facilities tracking
-   - Caretaker/staff management
-   - Nigerian legal templates
+**Success Criteria**: Basic mobile responsiveness complete, payment categories working, expense allocation functional, then Nigerian features implemented.
 
-**Success Criteria**: Multi-provider payment support, WhatsApp notifications working, estate management fully functional.
+**Strategic Decision**: Prioritized mobile responsiveness NOW (Week 4) instead of deferring to Week 10 because Nigerian market is 60%+ mobile users. Building mobile-responsive now prevents massive refactoring later and ensures all future features are mobile-friendly from the start.
 
 → **Detailed tasks**: [BACKLOG.md - P1 Features](BACKLOG.md#🟡-high-priority---competitive-advantages-p1)
 
 ---
 
-### Phase 4: Enhanced User Experience (Weeks 7-9)
+### Phase 4: Enhanced User Experience (Weeks 8-10)
 
 > **Goal**: Polish the experience and add features that improve daily usage.
 
 **Features**:
-1. **Week 7: Maintenance Management (Full)**
+1. **Week 8: Maintenance Management (Full) + Estate Management** 🇳🇬
    - Complete request lifecycle (pending → in progress → completed)
    - Vendor management and assignment
    - Cost tracking and budget monitoring
-   - Notifications for landlord and tenant
+   - Estate grouping and announcements
+   - Shared facilities tracking
+   - Caretaker/staff management
 
-2. **Week 8: Document Management**
+2. **Week 9: Document Management**
    - Cloud storage setup (S3/R2)
    - Document categorization (leases, IDs, receipts)
    - Upload, view, download, and expiry tracking
+   - Nigerian legal templates
 
-3. **Week 9: Communication Tools**
+3. **Week 10: Communication Tools**
    - In-app messaging between landlords and tenants
    - Broadcast announcements
    - Email templates for common notifications
 
-**Success Criteria**: Full maintenance workflow, organized document storage, streamlined communication.
+**Success Criteria**: Full maintenance workflow, estate management working, organized document storage, streamlined communication.
 
 → **Detailed tasks**: [BACKLOG.md - P1/P2 Features](BACKLOG.md#🟡-high-priority---competitive-advantages-p1)
 
 ---
 
-### Phase 5: Mobile & Advanced Features (Weeks 10-14)
+### Phase 5: PWA & Advanced Features (Weeks 11-15)
 
-> **Goal**: Build mobile experience and add AI-powered insights.
+> **Goal**: Add Progressive Web App capabilities and AI-powered insights.
+>
+> **Note**: Basic mobile responsiveness completed in Week 4. This phase focuses on PWA features like offline mode, installability, and push notifications.
 
 **Features**:
-1. **Weeks 10-11: Mobile Progressive Web App (PWA)**
+1. **Weeks 11-12: Progressive Web App (PWA) Features**
    - PWA configuration with offline functionality
-   - Mobile-optimized UI and navigation
+   - App installability (Add to Home Screen)
    - Camera integration for photo uploads
-   - Push notifications
+   - Push notifications for payments and maintenance
+   - Service worker for caching
 
-2. **Weeks 12-13: AI-Powered Insights** 🔮
+2. **Weeks 13-14: AI-Powered Insights** 🔮
    - Rent optimization and market rate analysis
    - Predictive analytics (maintenance costs, tenant churn)
    - Smart recommendations for lease renewal and property improvements
 
-3. **Week 14: Analytics & Reporting**
+3. **Week 15: Analytics & Reporting**
    - Portfolio performance dashboard with ROI calculations
    - Custom report builder with scheduling
    - Tax-ready reports with expense categorization
 
-**Success Criteria**: App installable on mobile, AI recommendations actionable, comprehensive analytics available.
+**Success Criteria**: App installable on mobile with offline support, AI recommendations actionable, comprehensive analytics available.
 
 → **Detailed tasks**: [BACKLOG.md - P1/P2/P3 Features](BACKLOG.md#🟢-medium-priority---enhanced-features-p2)
 
 ---
 
-### Phase 6: Scale & Optimize (Weeks 15-16+)
+### Phase 6: Scale & Optimize (Weeks 16-17+)
 
 > **Goal**: Prepare for growth and optimize performance.
 
 **Features**:
-1. **Week 15: Performance & Security**
+1. **Week 16: Performance & Security**
    - Database optimization and caching (Redis)
    - Security hardening (rate limiting, CSRF, input sanitization)
    - Error logging and monitoring (Sentry)
 
-2. **Week 16: Testing & Launch Prep**
+2. **Week 17: Testing & Launch Prep**
    - E2E tests with Playwright
    - Cross-browser and mobile testing
    - Production environment setup
@@ -193,18 +216,22 @@ Build the best property management software for small landlords (1-10 units) in 
 
 | Feature | Competitors Have It? | Impact | Effort | Priority | Timeline |
 |---------|---------------------|--------|--------|----------|----------|
-| **Payment Collection** | ✅ ALL | 🔴 Critical | Medium | P0 | Week 1 |
-| **Financial Reports** | ✅ ALL | 🔴 Critical | Medium | P0 | Week 2 |
-| **Tenant Portal** | ✅ ALL | 🔴 Critical | High | P0 | Week 3 |
-| **Nigerian Payments** | ⚠️ Local Only | 🟡 High | Medium | P1 | Week 4 |
-| **WhatsApp Integration** | ❌ UNIQUE | 🟢 Medium | Medium | P1 | Week 5 |
-| **Estate Management** | ❌ UNIQUE | 🟢 Medium | Medium | P1 | Week 6 |
-| **Maintenance Management** | ✅ Most | 🟡 High | Medium | P1 | Week 7 |
-| **Document Storage** | ✅ Most | 🟢 Medium | Medium | P2 | Week 8 |
-| **Communication Tools** | ✅ Most | 🟢 Medium | Low | P2 | Week 9 |
-| **Mobile PWA** | ⚠️ Some | 🟡 High | High | P1 (HIGH impact, deferred) | Week 10-11 |
-| **AI Insights** | ⚠️ Few | 🔵 Low | High | P3 | Week 12-13 |
-| **Advanced Analytics** | ⚠️ Some | 🟢 Medium | Medium | P2 | Week 14 |
+| **Payment Collection** | ✅ ALL | 🔴 Critical | Medium | P0 | ✅ Week 1 |
+| **Financial Reports** | ✅ ALL | 🔴 Critical | Medium | P0 | ✅ Week 2 |
+| **Tenant Portal** | ✅ ALL | 🔴 Critical | High | P0 | ✅ Week 3 |
+| **Payment Categories** | ⚠️ Some | 🟡 High | Low | P1 | ✅ Week 4 |
+| **Mobile Responsiveness** | ✅ ALL | 🔴 Critical | Medium | P0 (MOVED UP) | 🔄 Week 4 |
+| **Link Expenses to Maintenance** | ⚠️ Some | 🟢 Medium | Low | P1 | Week 4 |
+| **Shared Property Expenses** | ⚠️ Few | 🟡 High | Medium | P1 | Week 5 |
+| **Nigerian Payments** | ⚠️ Local Only | 🟡 High | Medium | P1 | Week 6 |
+| **WhatsApp Integration** | ❌ UNIQUE | 🟢 Medium | Medium | P1 | Week 7 |
+| **Maintenance Management (Full)** | ✅ Most | 🟡 High | Medium | P1 | Week 8 |
+| **Estate Management** | ❌ UNIQUE | 🟢 Medium | Medium | P1 | Week 8 |
+| **Document Storage** | ✅ Most | 🟢 Medium | Medium | P2 | Week 9 |
+| **Communication Tools** | ✅ Most | 🟢 Medium | Low | P2 | Week 10 |
+| **Mobile PWA Features** | ⚠️ Some | 🟡 High | High | P1 | Week 11-12 |
+| **AI Insights** | ⚠️ Few | 🔵 Low | High | P3 | Week 13-14 |
+| **Advanced Analytics** | ⚠️ Some | 🟢 Medium | Medium | P2 | Week 15 |
 
 **Priority Levels**:
 - **P0**: Blocking market entry - must have
@@ -323,10 +350,12 @@ Build the best property management software for small landlords (1-10 units) in 
 | **Tenant Portal** | Week 3 End | ✅ Complete (Feb 19, 2026) |
 | **Email Notifications** | Week 3 End | ✅ Complete (Feb 19, 2026) |
 | **Production Deployment** | Week 3 End | ✅ Complete (Feb 19, 2026) |
-| **Beta Launch** | Week 4 | 🎯 Ready to Launch! |
-| **Nigerian Features** | Week 6 End | Not Started |
-| **Mobile PWA** | Week 11 End | Not Started |
-| **Public Launch** | Week 16 | Not Started |
+| **Payment Categories** | Week 4 | ✅ Complete (Feb 20, 2026) |
+| **Mobile Responsiveness** | Week 4 End | 🔄 In Progress |
+| **Beta Launch** | Week 5 | 🎯 After Mobile Complete |
+| **Nigerian Features** | Week 6-7 End | Not Started |
+| **Mobile PWA** | Week 11-12 End | Not Started |
+| **Public Launch** | Week 17 | Not Started |
 | **100 Users** | Month 3 | Not Started |
 | **Profitability** | Month 6 | Not Started |
 
@@ -369,13 +398,14 @@ Build the best property management software for small landlords (1-10 units) in 
 
 ---
 
-## 🎓 Lessons from Competitive Analysis
+## 🎓 Lessons from Competitive Analysis & Development
 
 1. **Payment is Non-Negotiable**: Every competitor has it. Build it first.
 
 2. **Free Tier Works**: Innago, Landlord Studio, TenantCloud all offer free tiers successfully.
 
-3. **Mobile is Critical**: Especially in African markets where mobile usage dominates.
+3. **Mobile is Critical**: Especially in African markets where mobile usage dominates (60%+ in Nigeria).
+   - **Lesson Learned (Feb 2026)**: Build mobile-responsive from the start, not as an afterthought. Deferring mobile to Week 10 would have required massive refactoring. Prioritizing basic responsiveness in Week 4 ensures all future features are mobile-friendly.
 
 4. **Local Integration Matters**: Nigerian features (Paystack, WhatsApp) are differentiators.
 
@@ -384,6 +414,8 @@ Build the best property management software for small landlords (1-10 units) in 
 6. **Pricing Transparency**: Most Nigerian competitors hide pricing - we can win with transparency.
 
 7. **Multi-Currency is Unique**: No one else offers this - it's a strategic advantage.
+
+8. **Payment Categories Enable Better Reporting**: Distinguishing RENT from ELECTRICITY, WATER, etc. provides clearer financial insights for landlords and accountants.
 
 ---
 
@@ -394,18 +426,24 @@ Build the best property management software for small landlords (1-10 units) in 
 4. ✅ Tenant Portal (Complete - Feb 19, 2026)
 5. ✅ Email Notifications (Complete - Feb 19, 2026)
 6. ✅ Production Deployment (Complete - Feb 19, 2026)
-7. 🚀 **NEXT**: Production Testing & Beta Launch Prep
-8. 📊 Optional: Landlord Maintenance Dashboard
-9. 🎯 Optional: Google OAuth Integration
+7. ✅ Payment Categories Feature (Complete - Feb 20, 2026)
+8. 🔄 **IN PROGRESS**: Mobile Responsiveness (Basic) - Week 4
+9. 📋 **NEXT**: Link Expenses to Maintenance Requests - Week 4
+10. 🎯 **UPCOMING**: Shared Property Expenses - Week 5
 
-**🎉 MVP Status**: **COMPLETE** - All P0 features delivered!
-- ✅ Payment collection & tracking
+**🎉 Post-MVP Status**: **Payment Categories Complete** - Ready for Mobile Optimization!
+- ✅ Payment collection & tracking with Paystack
 - ✅ Financial reporting with CSV exports
 - ✅ Tenant portal with self-service
 - ✅ Email notifications (4 types)
 - ✅ Deployed to production (Vercel)
+- ✅ Payment type categorization (RENT, ELECTRICITY, WATER, etc.)
+- ✅ Income breakdown by payment type in reports
+- 🔄 Mobile responsiveness (in progress)
 
-**🚀 Ready for Beta Launch!**
+**📱 Priority Shift**: Moved Mobile Responsiveness from Week 10 to Week 4 based on Nigerian market analysis (60%+ mobile users). Building mobile-friendly now prevents technical debt.
 
-**Last Review**: February 19, 2026
+**🚀 Beta Launch**: Deferred to Week 5 (after mobile responsiveness complete)
+
+**Last Review**: February 20, 2026
 **Next Review**: Weekly sprint review

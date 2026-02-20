@@ -9,6 +9,7 @@ const initializeSchema = z.object({
   amount: z.number().positive("Amount must be positive"),
   dueDate: z.string().min(1, "Due date is required"),
   notes: z.string().optional(),
+  paymentType: z.enum(["RENT", "ELECTRICITY", "WATER", "GAS", "INTERNET", "MAINTENANCE", "SECURITY_DEPOSIT", "LATE_FEE", "OTHER"]).optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -30,7 +31,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { leaseId, amount, dueDate, notes } = validation.data
+    const { leaseId, amount, dueDate, notes, paymentType } = validation.data
 
     // Verify lease exists and user owns the property
     const lease = await db.lease.findUnique({
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
         dueDate: new Date(dueDate),
         status: "PENDING",
         paymentMethod: "Paystack",
+        paymentType: paymentType || "RENT",
         notes: notes || null,
       },
     })

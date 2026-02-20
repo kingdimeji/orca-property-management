@@ -170,7 +170,8 @@ model Payment {
   dueDate       DateTime
   paidDate      DateTime?
   status        PaymentStatus @default(PENDING)
-  paymentMethod String?   // e.g., "Bank Transfer", "Cash", "Paystack"
+  paymentMethod String?   // e.g., "Bank Transfer", "Cash", "Paystack" - HOW payment was made
+  paymentType   PaymentType @default(RENT) // WHAT payment is for
   reference     String?   // Payment reference/transaction ID
   lateFee       Float     @default(0)
   notes         String?
@@ -190,6 +191,18 @@ enum PaymentStatus {
   OVERDUE
   PARTIAL
   CANCELLED
+}
+
+enum PaymentType {
+  RENT
+  ELECTRICITY
+  WATER
+  GAS
+  INTERNET
+  MAINTENANCE
+  SECURITY_DEPOSIT
+  LATE_FEE
+  OTHER
 }
 
 // Expense model - Property expenses

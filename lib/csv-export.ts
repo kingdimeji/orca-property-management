@@ -5,6 +5,7 @@
 
 import type { Payment, Expense, Property } from "@prisma/client"
 import { formatCurrency } from "./utils"
+import { formatPaymentType } from "./payment-utils"
 
 /**
  * Escape CSV field value (handle commas, quotes, newlines)
@@ -123,6 +124,7 @@ export function exportIncomesToCSV(
     Email: payment.lease.tenant.email,
     Property: payment.lease.unit.property.name,
     Unit: payment.lease.unit.name,
+    Type: formatPaymentType(payment.paymentType),
     Amount: formatCurrency(payment.amount, currency),
     "Late Fee": formatCurrency(payment.lateFee, currency),
     Total: formatCurrency(payment.amount + payment.lateFee, currency),
@@ -140,6 +142,7 @@ export function exportIncomesToCSV(
     "Email",
     "Property",
     "Unit",
+    "Type",
     "Amount",
     "Late Fee",
     "Total",
@@ -200,7 +203,7 @@ export function exportFinancialReportToCSV(
 
   // Income details
   lines.push("INCOME DETAILS")
-  lines.push("Due Date,Paid Date,Tenant,Property,Unit,Amount,Status")
+  lines.push("Due Date,Paid Date,Tenant,Property,Unit,Type,Amount,Status")
   payments.forEach((payment) => {
     lines.push(
       [
@@ -213,6 +216,7 @@ export function exportFinancialReportToCSV(
         ),
         escapeCSVField(payment.lease.unit.property.name),
         escapeCSVField(payment.lease.unit.name),
+        escapeCSVField(formatPaymentType(payment.paymentType)),
         payment.amount + payment.lateFee,
         payment.status,
       ].join(",")

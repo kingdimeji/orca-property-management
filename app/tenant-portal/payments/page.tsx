@@ -11,6 +11,7 @@ import {
   Download,
 } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
+import { formatPaymentType, getPaymentTypeBadgeColor } from "@/lib/payment-utils"
 import { PayNowButton } from "./pay-now-button"
 
 export default async function TenantPaymentsPage() {
@@ -181,6 +182,9 @@ export default async function TenantPaymentsPage() {
                     <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
                       Paid Date
                     </th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
+                      Type
+                    </th>
                     <th className="text-right py-3 px-4 text-sm font-medium text-gray-600">
                       Amount
                     </th>
@@ -216,6 +220,11 @@ export default async function TenantPaymentsPage() {
                         {payment.paidDate
                           ? new Date(payment.paidDate).toLocaleDateString()
                           : "-"}
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getPaymentTypeBadgeColor(payment.paymentType)}`}>
+                          {formatPaymentType(payment.paymentType)}
+                        </span>
                       </td>
                       <td className="py-4 px-4 text-right text-sm font-medium text-gray-900">
                         {formatCurrency(payment.amount, session.user.currency)}

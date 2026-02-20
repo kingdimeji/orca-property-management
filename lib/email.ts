@@ -4,6 +4,7 @@
  */
 
 import { Resend } from "resend"
+import { formatPaymentType } from "./payment-utils"
 
 // Initialize Resend client
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -153,7 +154,8 @@ export async function sendPaymentConfirmationEmail(
   paidDate: Date,
   propertyName: string,
   unitName: string,
-  reference: string
+  reference: string,
+  paymentType: string = "RENT"
 ) {
   const formattedAmount = new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -187,6 +189,10 @@ export async function sendPaymentConfirmationEmail(
         <tr>
           <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Amount Paid:</td>
           <td style="padding: 8px 0; color: #1f2937; font-weight: 600; text-align: right; font-size: 18px;">${formattedAmount}</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Payment Type:</td>
+          <td style="padding: 8px 0; color: #1f2937; font-weight: 600; text-align: right;">${formatPaymentType(paymentType)}</td>
         </tr>
         <tr>
           <td style="padding: 8px 0; color: #6b7280; font-size: 14px;">Property:</td>
