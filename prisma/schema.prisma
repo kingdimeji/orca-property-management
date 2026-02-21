@@ -93,6 +93,7 @@ model Unit {
 
   leases        Lease[]
   maintenanceRequests MaintenanceRequest[]
+  expenseAllocations  ExpenseAllocation[]
 
   @@map("units")
 }
@@ -222,6 +223,8 @@ model Expense {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  isShared      Boolean   @default(false)
+
   propertyId    String?
   property      Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
@@ -231,7 +234,24 @@ model Expense {
   userId        String
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  allocations   ExpenseAllocation[]
+
   @@map("expenses")
+}
+
+// Tracks how a shared expense is split across units
+model ExpenseAllocation {
+  id          String   @id @default(cuid())
+  percentage  Float    // e.g. 33.33
+  amount      Float    // expense.amount * percentage / 100
+
+  expenseId   String
+  expense     Expense  @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+
+  unitId      String
+  unit        Unit     @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@map("expense_allocations")
 }
 
 enum ExpenseCategory {

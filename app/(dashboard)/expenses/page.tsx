@@ -7,10 +7,10 @@ import { formatCurrency, formatDate } from "@/lib/utils"
 import type { ExpenseWithRelations } from "@/types/prisma"
 import AddExpenseButton from "./add-expense-button"
 import EditExpenseButton from "./edit-expense-button"
+import RequestPaymentButton from "./request-payment-button"
 import { ResponsiveTable } from "@/components/ui/responsive-table"
 import { Badge } from "@/components/ui/badge"
 
-// Format category names for display
 function formatCategory(category: string): string {
   return category
     .split("_")
@@ -25,56 +25,42 @@ export default async function ExpensesPage() {
     redirect("/login")
   }
 
-  // Fetch all expenses for the user
   const expenses: ExpenseWithRelations[] = await db.expense.findMany({
-    where: {
-      userId: session.user.id,
-    },
+    where: { userId: session.user.id },
     include: {
       property: true,
       maintenanceRequest: {
         include: {
           unit: {
-            include: {
-              property: true,
-            },
+            include: { property: true },
           },
         },
       },
+      allocations: {
+        include: { unit: true },
+      },
     },
-    orderBy: {
-      date: "desc",
-    },
+    orderBy: { date: "desc" },
   })
 
-  // Calculate summary metrics
+  // Summary metrics
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0)
 
   const thisMonthExpenses = expenses.filter((e) => {
-    const expenseDate = new Date(e.date)
+    const d = new Date(e.date)
     const now = new Date()
-    return (
-      expenseDate.getMonth() === now.getMonth() &&
-      expenseDate.getFullYear() === now.getFullYear()
-    )
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
   })
-
   const thisMonthTotal = thisMonthExpenses.reduce((sum, e) => sum + e.amount, 0)
 
-  // Find top category
   const categoryTotals: Record<string, number> = {}
   expenses.forEach((e) => {
     categoryTotals[e.category] = (categoryTotals[e.category] || 0) + e.amount
   })
 
-  const topCategoryEntry = Object.entries(categoryTotals).sort(
-    ([, a], [, b]) => b - a
-  )[0]
-  const topCategory = topCategoryEntry
-    ? formatCategory(topCategoryEntry[0])
-    : "None"
+  const topCategoryEntry = Object.entries(categoryTotals).sort(([, a], [, b]) => b - a)[0]
+  const topCategory = topCategoryEntry ? formatCategory(topCategoryEntry[0]) : "None"
 
-  // Recent expenses count (last 30 days)
   const thirtyDaysAgo = new Date()
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
   const recentCount = expenses.filter((e) => new Date(e.date) >= thirtyDaysAgo).length
@@ -84,9 +70,7 @@ export default async function ExpensesPage() {
       <div className="mb-8 flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Expenses</h1>
-          <p className="mt-2 text-gray-600">
-            Track all expenses across your properties
-          </p>
+          <p className="mt-2 text-gray-600">Track all expenses across your properties</p>
         </div>
         <AddExpenseButton currency={session.user.currency} />
       </div>
@@ -95,9 +79,7 @@ export default async function ExpensesPage() {
       <div className="grid gap-6 md:grid-cols-4 mb-8">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Total Expenses
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Total Expenses</CardTitle>
             <TrendingDown className="w-4 h-4 text-red-600" />
           </CardHeader>
           <CardContent>
@@ -110,26 +92,20 @@ export default async function ExpensesPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              This Month
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">This Month</CardTitle>
             <Calendar className="w-4 h-4 text-orange-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
               {formatCurrency(thisMonthTotal, session.user.currency)}
             </div>
-            <p className="text-xs text-gray-500 mt-1">
-              {thisMonthExpenses.length} expense(s)
-            </p>
+            <p className="text-xs text-gray-500 mt-1">{thisMonthExpenses.length} expense(s)</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Top Category
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Top Category</CardTitle>
             <Tag className="w-4 h-4 text-purple-600" />
           </CardHeader>
           <CardContent>
@@ -144,9 +120,7 @@ export default async function ExpensesPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">
-              Recent Expenses
-            </CardTitle>
+            <CardTitle className="text-sm font-medium text-gray-600">Recent Expenses</CardTitle>
             <Receipt className="w-4 h-4 text-blue-600" />
           </CardHeader>
           <CardContent>
@@ -165,9 +139,7 @@ export default async function ExpensesPage() {
           {expenses.length === 0 ? (
             <div className="text-center py-12">
               <Receipt className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No expenses yet
-              </h3>
+              <h3 className="text-xl font-semibold text-gray-900 mb-2">No expenses yet</h3>
               <p className="text-gray-600 mb-6">
                 Start tracking expenses to get insights into your property costs.
               </p>
@@ -183,24 +155,29 @@ export default async function ExpensesPage() {
                 "Maintenance Request",
                 "Vendor",
                 "Amount",
-                "Actions"
+                "Actions",
               ]}
               rows={expenses.map((expense) => ({
                 key: expense.id,
                 cells: [
                   // Date
                   formatDate(expense.date),
-                  // Category
-                  <Badge key="category" variant="default" className="bg-purple-100 text-purple-700 border-purple-200">
-                    {formatCategory(expense.category)}
-                  </Badge>,
+                  // Category + Shared badge
+                  <div key="category" className="flex items-center gap-1.5 flex-wrap">
+                    <Badge variant="default" className="bg-purple-100 text-purple-700 border-purple-200">
+                      {formatCategory(expense.category)}
+                    </Badge>
+                    {expense.isShared && (
+                      <Badge variant="info">
+                        Shared · {expense.allocations.length} units
+                      </Badge>
+                    )}
+                  </div>,
                   // Description
                   <div key="description">
                     <div className="text-gray-900">{expense.description}</div>
                     {expense.notes && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        {expense.notes}
-                      </div>
+                      <div className="text-xs text-gray-500 mt-1">{expense.notes}</div>
                     )}
                   </div>,
                   // Property
@@ -212,13 +189,18 @@ export default async function ExpensesPage() {
                   // Maintenance Request
                   expense.maintenanceRequest ? (
                     <div key="maintenance" className="text-sm">
-                      <div className="font-medium text-gray-900">{expense.maintenanceRequest.title}</div>
+                      <div className="font-medium text-gray-900">
+                        {expense.maintenanceRequest.title}
+                      </div>
                       <div className="text-xs text-gray-500">
-                        {expense.maintenanceRequest.unit.property.name} - {expense.maintenanceRequest.unit.name}
+                        {expense.maintenanceRequest.unit.property.name} -{" "}
+                        {expense.maintenanceRequest.unit.name}
                       </div>
                     </div>
                   ) : (
-                    <span key="maintenance" className="text-gray-400 italic text-sm">—</span>
+                    <span key="maintenance" className="text-gray-400 italic text-sm">
+                      —
+                    </span>
                   ),
                   // Vendor
                   expense.vendor || <span className="text-gray-400 italic">—</span>,
@@ -227,12 +209,13 @@ export default async function ExpensesPage() {
                     {formatCurrency(expense.amount, session.user.currency)}
                   </span>,
                   // Actions
-                  <EditExpenseButton
-                    key="actions"
-                    expense={expense}
-                    currency={session.user.currency}
-                  />
-                ]
+                  <div key="actions" className="flex items-center gap-2">
+                    <EditExpenseButton expense={expense} currency={session.user.currency} />
+                    {expense.isShared && expense.allocations.length > 0 && (
+                      <RequestPaymentButton expenseId={expense.id} />
+                    )}
+                  </div>,
+                ],
               }))}
             />
           )}

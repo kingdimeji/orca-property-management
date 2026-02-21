@@ -3,6 +3,20 @@ import { auth } from "@/lib/auth"
 import { db } from "@/lib/db"
 import { ExpenseCategory } from "@prisma/client"
 
+const INCLUDE_EXPENSE_RELATIONS = {
+  property: true,
+  maintenanceRequest: {
+    include: {
+      unit: {
+        include: { property: true },
+      },
+    },
+  },
+  allocations: {
+    include: { unit: true },
+  },
+} as const
+
 export async function GET(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -18,25 +32,13 @@ export async function GET(
 
     const expense = await db.expense.findUnique({
       where: { id },
-      include: {
-        property: true,
-        maintenanceRequest: {
-          include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
-          },
-        },
-      },
+      include: INCLUDE_EXPENSE_RELATIONS,
     })
 
     if (!expense) {
       return NextResponse.json({ message: "Expense not found" }, { status: 404 })
     }
 
-    // Verify ownership - expenses have direct userId relationship
     if (expense.userId !== session.user.id) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 })
     }
@@ -64,10 +66,7 @@ export async function PATCH(
 
     const { id } = await params
 
-    // Verify ownership
-    const expense = await db.expense.findUnique({
-      where: { id },
-    })
+    const expense = await db.expense.findUnique({ where: { id } })
 
     if (!expense) {
       return NextResponse.json({ message: "Expense not found" }, { status: 404 })
@@ -88,9 +87,10 @@ export async function PATCH(
       vendor,
       receiptUrl,
       notes,
+      isShared,
+      allocations,
     } = body
 
-    // Validate required fields
     if (!amount || amount <= 0) {
       return NextResponse.json(
         { message: "Valid amount is required" },
@@ -113,18 +113,12 @@ export async function PATCH(
     }
 
     if (!date) {
-      return NextResponse.json(
-        { message: "Date is required" },
-        { status: 400 }
-      )
+      return NextResponse.json({ message: "Date is required" }, { status: 400 })
     }
 
-    // If propertyId is being changed, verify user owns the new property
     let finalPropertyId = propertyId
     if (propertyId && propertyId !== expense.propertyId) {
-      const property = await db.property.findUnique({
-        where: { id: propertyId },
-      })
+      const property = await db.property.findUnique({ where: { id: propertyId } })
 
       if (!property) {
         return NextResponse.json(
@@ -138,25 +132,17 @@ export async function PATCH(
       }
     }
 
-    // If maintenanceRequestId is being changed, verify user owns it and auto-set property
-    if (maintenanceRequestId !== undefined && maintenanceRequestId !== expense.maintenanceRequestId) {
+    if (
+      maintenanceRequestId !== undefined &&
+      maintenanceRequestId !== expense.maintenanceRequestId
+    ) {
       if (maintenanceRequestId) {
         const maintenanceRequest = await db.maintenanceRequest.findFirst({
           where: {
             id: maintenanceRequestId,
-            unit: {
-              property: {
-                userId: session.user.id,
-              },
-            },
+            unit: { property: { userId: session.user.id } },
           },
-          include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
-          },
+          include: { unit: { include: { property: true } } },
         })
 
         if (!maintenanceRequest) {
@@ -166,39 +152,86 @@ export async function PATCH(
           )
         }
 
-        // Auto-set propertyId from maintenance request if not already set
         if (!finalPropertyId && maintenanceRequest.unit.property.id) {
           finalPropertyId = maintenanceRequest.unit.property.id
         }
       }
     }
 
-    // Update expense (cannot change userId)
-    const updated = await db.expense.update({
-      where: { id },
-      data: {
-        amount: parseFloat(amount),
-        category,
-        description: description.trim(),
-        date: new Date(date),
-        propertyId: finalPropertyId !== undefined ? (finalPropertyId || null) : undefined,
-        maintenanceRequestId: maintenanceRequestId !== undefined ? (maintenanceRequestId || null) : undefined,
-        vendor: vendor?.trim() || null,
-        receiptUrl: receiptUrl?.trim() || null,
-        notes: notes?.trim() || null,
-      },
-      include: {
-        property: true,
-        maintenanceRequest: {
-          include: {
-            unit: {
-              include: {
-                property: true,
-              },
-            },
-          },
+    const parsedAmount = parseFloat(amount)
+
+    // Build new allocations if isShared
+    let allocationsData: { unitId: string; percentage: number; amount: number }[] = []
+
+    if (isShared && finalPropertyId) {
+      if (allocations && allocations.length > 0) {
+        const total = allocations.reduce((sum: number, a: { percentage: number }) => sum + a.percentage, 0)
+        if (Math.abs(total - 100) > 0.5) {
+          return NextResponse.json(
+            { message: "Allocation percentages must total 100%" },
+            { status: 400 }
+          )
+        }
+        allocationsData = allocations.map((a: { unitId: string; percentage: number }) => ({
+          unitId: a.unitId,
+          percentage: a.percentage,
+          amount: parseFloat(((parsedAmount * a.percentage) / 100).toFixed(2)),
+        }))
+      } else {
+        const units = await db.unit.findMany({
+          where: { propertyId: finalPropertyId },
+          select: { id: true },
+        })
+        if (units.length > 0) {
+          const equalPct = parseFloat((100 / units.length).toFixed(2))
+          allocationsData = units.map((unit, i) => ({
+            unitId: unit.id,
+            percentage: i === units.length - 1 ? 100 - equalPct * (units.length - 1) : equalPct,
+            amount: parseFloat(((parsedAmount * equalPct) / 100).toFixed(2)),
+          }))
+        }
+      }
+    }
+
+    // Update expense + replace allocations in a transaction
+    const updated = await db.$transaction(async (tx) => {
+      // Delete existing allocations first
+      await tx.expenseAllocation.deleteMany({ where: { expenseId: id } })
+
+      await tx.expense.update({
+        where: { id },
+        data: {
+          amount: parsedAmount,
+          category,
+          description: description.trim(),
+          date: new Date(date),
+          isShared: !!isShared,
+          propertyId: finalPropertyId !== undefined ? (finalPropertyId || null) : undefined,
+          maintenanceRequestId:
+            maintenanceRequestId !== undefined
+              ? maintenanceRequestId || null
+              : undefined,
+          vendor: vendor?.trim() || null,
+          receiptUrl: receiptUrl?.trim() || null,
+          notes: notes?.trim() || null,
         },
-      },
+      })
+
+      if (allocationsData.length > 0) {
+        await tx.expenseAllocation.createMany({
+          data: allocationsData.map((a) => ({
+            expenseId: id,
+            unitId: a.unitId,
+            percentage: a.percentage,
+            amount: a.amount,
+          })),
+        })
+      }
+
+      return tx.expense.findUnique({
+        where: { id },
+        include: INCLUDE_EXPENSE_RELATIONS,
+      })
     })
 
     return NextResponse.json(updated)
@@ -224,10 +257,7 @@ export async function DELETE(
 
     const { id } = await params
 
-    // Verify ownership
-    const expense = await db.expense.findUnique({
-      where: { id },
-    })
+    const expense = await db.expense.findUnique({ where: { id } })
 
     if (!expense) {
       return NextResponse.json({ message: "Expense not found" }, { status: 404 })
@@ -237,10 +267,7 @@ export async function DELETE(
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 })
     }
 
-    // Delete expense
-    await db.expense.delete({
-      where: { id },
-    })
+    await db.expense.delete({ where: { id } })
 
     return NextResponse.json({ message: "Expense deleted successfully" })
   } catch (error) {

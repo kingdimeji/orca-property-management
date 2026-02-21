@@ -6,7 +6,8 @@ import { Pencil, Trash2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import type { Property } from "@prisma/client"
+import { formatCurrency } from "@/lib/utils"
+import type { Property, Unit } from "@prisma/client"
 import type { ExpenseWithRelations } from "@/types/prisma"
 
 interface EditExpenseButtonProps {
@@ -28,6 +29,12 @@ type MaintenanceRequestWithUnit = {
   }
 }
 
+type AllocationRow = {
+  unitId: string
+  unitName: string
+  percentage: number
+}
+
 const EXPENSE_CATEGORIES = [
   "MAINTENANCE",
   "REPAIRS",
@@ -42,7 +49,6 @@ const EXPENSE_CATEGORIES = [
   "OTHER",
 ]
 
-// Format category for display
 function formatCategory(category: string): string {
   return category
     .split("_")
@@ -61,9 +67,18 @@ export default function EditExpenseButton({
   const [properties, setProperties] = useState<Property[]>([])
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequestWithUnit[]>([])
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [selectedPropertyId, setSelectedPropertyId] = useState(expense.propertyId || "")
+  const [isShared, setIsShared] = useState(expense.isShared)
+  const [allocations, setAllocations] = useState<AllocationRow[]>(() =>
+    (expense.allocations ?? []).map((a) => ({
+      unitId: a.unitId,
+      unitName: a.unit.name,
+      percentage: a.percentage,
+    }))
+  )
+  const [amount, setAmount] = useState(String(expense.amount))
   const router = useRouter()
 
-  // Fetch properties and maintenance requests when modal opens
   useEffect(() => {
     if (isOpen) {
       setIsDataLoading(true)
@@ -83,38 +98,81 @@ export default function EditExpenseButton({
     }
   }, [isOpen])
 
+  // When isShared is toggled on with a property, load units
+  useEffect(() => {
+    if (isShared && selectedPropertyId) {
+      // If existing allocations match the selected property, keep them
+      if (allocations.length > 0) return
+
+      fetch(`/api/properties/${selectedPropertyId}/units`)
+        .then((res) => res.json())
+        .then((units: Unit[]) => {
+          if (units.length === 0) return
+          const equalPct = parseFloat((100 / units.length).toFixed(2))
+          setAllocations(
+            units.map((u, i) => ({
+              unitId: u.id,
+              unitName: (u as any).name,
+              percentage:
+                i === units.length - 1
+                  ? parseFloat((100 - equalPct * (units.length - 1)).toFixed(2))
+                  : equalPct,
+            }))
+          )
+        })
+        .catch((err) => console.error("Failed to load units:", err))
+    } else if (!isShared) {
+      setAllocations([])
+    }
+  }, [isShared, selectedPropertyId])
+
+  function handlePropertyChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    setSelectedPropertyId(e.target.value)
+    setIsShared(false)
+    setAllocations([])
+  }
+
+  function handlePercentageChange(unitId: string, value: string) {
+    const pct = parseFloat(value) || 0
+    setAllocations((prev) =>
+      prev.map((a) => (a.unitId === unitId ? { ...a, percentage: pct } : a))
+    )
+  }
+
+  const totalPct = allocations.reduce((sum, a) => sum + a.percentage, 0)
+  const allocationValid = Math.abs(totalPct - 100) <= 0.5
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+
+    if (isShared && allocations.length > 0 && !allocationValid) {
+      setError("Allocation percentages must total 100%")
+      return
+    }
+
     setIsLoading(true)
     setError("")
 
     const formData = new FormData(e.currentTarget)
-    const amount = formData.get("amount") as string
-    const category = formData.get("category") as string
-    const description = formData.get("description") as string
-    const date = formData.get("date") as string
-    const propertyId = formData.get("propertyId") as string
-    const maintenanceRequestId = formData.get("maintenanceRequestId") as string
-    const vendor = formData.get("vendor") as string
-    const receiptUrl = formData.get("receiptUrl") as string
-    const notes = formData.get("notes") as string
 
     try {
       const response = await fetch(`/api/expenses/${expense.id}`, {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: parseFloat(amount),
-          category,
-          description,
-          date,
-          propertyId: propertyId || null,
-          maintenanceRequestId: maintenanceRequestId || null,
-          vendor: vendor || null,
-          receiptUrl: receiptUrl || null,
-          notes: notes || null,
+          amount: parseFloat(formData.get("amount") as string),
+          category: formData.get("category"),
+          description: formData.get("description"),
+          date: formData.get("date"),
+          propertyId: formData.get("propertyId") || null,
+          maintenanceRequestId: formData.get("maintenanceRequestId") || null,
+          vendor: formData.get("vendor") || null,
+          receiptUrl: formData.get("receiptUrl") || null,
+          notes: formData.get("notes") || null,
+          isShared,
+          allocations: isShared
+            ? allocations.map((a) => ({ unitId: a.unitId, percentage: a.percentage }))
+            : [],
         }),
       })
 
@@ -156,8 +214,8 @@ export default function EditExpenseButton({
     }
   }
 
-  // Format date for input (YYYY-MM-DD)
   const formattedDate = new Date(expense.date).toISOString().split("T")[0]
+  const parsedAmount = parseFloat(amount) || 0
 
   return (
     <>
@@ -190,15 +248,14 @@ export default function EditExpenseButton({
             </div>
 
             {showDeleteConfirm ? (
-              /* Delete Confirmation */
               <div className="p-6">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                   <p className="text-red-800 font-semibold mb-2">
                     Are you sure you want to delete this expense?
                   </p>
                   <p className="text-red-700 text-sm">
-                    This action cannot be undone. The expense record will be permanently
-                    removed.
+                    This action cannot be undone. The expense record will be permanently removed.
+                    {expense.isShared && " Unit allocations will also be deleted."}
                   </p>
                 </div>
 
@@ -220,7 +277,6 @@ export default function EditExpenseButton({
                 </div>
               </div>
             ) : (
-              /* Edit Form */
               <form onSubmit={onSubmit} className="p-6 space-y-5">
                 {/* Amount and Date Row */}
                 <div className="grid grid-cols-2 gap-4">
@@ -233,9 +289,10 @@ export default function EditExpenseButton({
                       name="amount"
                       type="number"
                       step="0.01"
-                      defaultValue={expense.amount}
                       required
                       placeholder="0.00"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
                     />
                   </div>
 
@@ -280,7 +337,8 @@ export default function EditExpenseButton({
                     <select
                       id="propertyId"
                       name="propertyId"
-                      defaultValue={expense.propertyId || ""}
+                      value={selectedPropertyId}
+                      onChange={handlePropertyChange}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <option value="">General / Company</option>
@@ -292,6 +350,70 @@ export default function EditExpenseButton({
                     </select>
                   </div>
                 </div>
+
+                {/* Split across units checkbox */}
+                {selectedPropertyId && (
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                    <input
+                      type="checkbox"
+                      id="isShared"
+                      checked={isShared}
+                      onChange={(e) => setIsShared(e.target.checked)}
+                      className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <Label htmlFor="isShared" className="text-sm text-blue-800 cursor-pointer mb-0">
+                      Split this expense across all units in this property
+                    </Label>
+                  </div>
+                )}
+
+                {/* Allocation table */}
+                {isShared && allocations.length > 0 && (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                      <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                        Unit Allocation
+                      </p>
+                    </div>
+                    <div className="divide-y divide-gray-100">
+                      {allocations.map((a) => (
+                        <div key={a.unitId} className="flex items-center gap-3 px-4 py-2.5">
+                          <span className="flex-1 text-sm text-gray-700">{a.unitName}</span>
+                          <div className="flex items-center gap-1.5">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              step="0.01"
+                              value={a.percentage}
+                              onChange={(e) => handlePercentageChange(a.unitId, e.target.value)}
+                              className="w-20 h-8 text-sm text-right"
+                            />
+                            <span className="text-sm text-gray-500">%</span>
+                          </div>
+                          <span className="text-sm font-medium text-gray-700 w-28 text-right">
+                            {parsedAmount > 0
+                              ? formatCurrency((parsedAmount * a.percentage) / 100, currency)
+                              : "—"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-t border-gray-200">
+                      <span className="text-xs font-semibold text-gray-600">Total</span>
+                      <span
+                        className={`text-xs font-semibold ${
+                          allocationValid ? "text-green-600" : "text-red-600"
+                        }`}
+                      >
+                        {totalPct.toFixed(2)}% {!allocationValid && "(must equal 100%)"}
+                      </span>
+                      <span className="text-sm font-semibold text-gray-700 w-28 text-right">
+                        {parsedAmount > 0 ? formatCurrency(parsedAmount, currency) : "—"}
+                      </span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Maintenance Request */}
                 <div className="space-y-2">
@@ -397,7 +519,7 @@ export default function EditExpenseButton({
                     </Button>
                     <Button
                       type="submit"
-                      disabled={isLoading}
+                      disabled={isLoading || (isShared && allocations.length > 0 && !allocationValid)}
                       className="bg-[#635bff] hover:bg-[#5348e8] text-white"
                     >
                       {isLoading ? "Saving..." : "Save Changes"}

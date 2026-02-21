@@ -70,7 +70,7 @@ export type ExpenseWithProperty = Prisma.ExpenseGetPayload<{
 }>
 
 /**
- * Expense with all relations (property and maintenance request)
+ * Expense with all relations (property, maintenance request, and unit allocations)
  * Used in: api/expenses/route.ts, api/expenses/[id]/route.ts, expenses/page.tsx
  */
 export type ExpenseWithRelations = Prisma.ExpenseGetPayload<{
@@ -85,6 +85,21 @@ export type ExpenseWithRelations = Prisma.ExpenseGetPayload<{
         }
       }
     }
+    allocations: {
+      include: {
+        unit: true
+      }
+    }
+  }
+}>
+
+/**
+ * A single expense allocation with its unit
+ * Used in: shared expense allocation table, request-payment API
+ */
+export type ExpenseAllocationWithUnit = Prisma.ExpenseAllocationGetPayload<{
+  include: {
+    unit: true
   }
 }>
 

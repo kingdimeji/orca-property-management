@@ -6,7 +6,8 @@ import { Plus, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import type { Property } from "@prisma/client"
+import { formatCurrency } from "@/lib/utils"
+import type { Property, Unit } from "@prisma/client"
 
 interface AddExpenseButtonProps {
   currency: string
@@ -26,6 +27,12 @@ type MaintenanceRequestWithUnit = {
   }
 }
 
+type AllocationRow = {
+  unitId: string
+  unitName: string
+  percentage: number
+}
+
 const EXPENSE_CATEGORIES = [
   "MAINTENANCE",
   "REPAIRS",
@@ -40,7 +47,6 @@ const EXPENSE_CATEGORIES = [
   "OTHER",
 ]
 
-// Format category for display
 function formatCategory(category: string): string {
   return category
     .split("_")
@@ -54,9 +60,12 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
   const [error, setError] = useState("")
   const [properties, setProperties] = useState<Property[]>([])
   const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequestWithUnit[]>([])
+  const [selectedPropertyId, setSelectedPropertyId] = useState("")
+  const [isShared, setIsShared] = useState(false)
+  const [allocations, setAllocations] = useState<AllocationRow[]>([])
+  const [amount, setAmount] = useState("")
   const router = useRouter()
 
-  // Fetch properties and maintenance requests when modal opens
   useEffect(() => {
     if (isOpen) {
       fetch("/api/properties")
@@ -64,48 +73,85 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
         .then((data) => setProperties(data))
         .catch((err) => console.error("Failed to load properties:", err))
 
-      // Fetch open/in-progress maintenance requests
       fetch("/api/maintenance?status=OPEN,IN_PROGRESS")
         .then((res) => res.json())
-        .then((data) => {
-          setMaintenanceRequests(data)
-        })
+        .then((data) => setMaintenanceRequests(data))
         .catch((err) => console.error("Failed to load maintenance requests:", err))
     }
   }, [isOpen])
 
+  // When isShared is toggled on, load units for the selected property
+  useEffect(() => {
+    if (isShared && selectedPropertyId) {
+      fetch(`/api/properties/${selectedPropertyId}/units`)
+        .then((res) => res.json())
+        .then((units: Unit[]) => {
+          if (units.length === 0) return
+          const equalPct = parseFloat((100 / units.length).toFixed(2))
+          setAllocations(
+            units.map((u, i) => ({
+              unitId: u.id,
+              unitName: (u as any).name,
+              percentage:
+                i === units.length - 1
+                  ? parseFloat((100 - equalPct * (units.length - 1)).toFixed(2))
+                  : equalPct,
+            }))
+          )
+        })
+        .catch((err) => console.error("Failed to load units:", err))
+    } else {
+      setAllocations([])
+    }
+  }, [isShared, selectedPropertyId])
+
+  function handlePropertyChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    setSelectedPropertyId(e.target.value)
+    setIsShared(false)
+    setAllocations([])
+  }
+
+  function handlePercentageChange(unitId: string, value: string) {
+    const pct = parseFloat(value) || 0
+    setAllocations((prev) =>
+      prev.map((a) => (a.unitId === unitId ? { ...a, percentage: pct } : a))
+    )
+  }
+
+  const totalPct = allocations.reduce((sum, a) => sum + a.percentage, 0)
+  const allocationValid = Math.abs(totalPct - 100) <= 0.5
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+
+    if (isShared && allocations.length > 0 && !allocationValid) {
+      setError("Allocation percentages must total 100%")
+      return
+    }
+
     setIsLoading(true)
     setError("")
 
     const formData = new FormData(e.currentTarget)
-    const amount = formData.get("amount") as string
-    const category = formData.get("category") as string
-    const description = formData.get("description") as string
-    const date = formData.get("date") as string
-    const propertyId = formData.get("propertyId") as string
-    const maintenanceRequestId = formData.get("maintenanceRequestId") as string
-    const vendor = formData.get("vendor") as string
-    const receiptUrl = formData.get("receiptUrl") as string
-    const notes = formData.get("notes") as string
 
     try {
       const response = await fetch("/api/expenses", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: parseFloat(amount),
-          category,
-          description,
-          date,
-          propertyId: propertyId || null,
-          maintenanceRequestId: maintenanceRequestId || null,
-          vendor: vendor || null,
-          receiptUrl: receiptUrl || null,
-          notes: notes || null,
+          amount: parseFloat(formData.get("amount") as string),
+          category: formData.get("category"),
+          description: formData.get("description"),
+          date: formData.get("date"),
+          propertyId: formData.get("propertyId") || null,
+          maintenanceRequestId: formData.get("maintenanceRequestId") || null,
+          vendor: formData.get("vendor") || null,
+          receiptUrl: formData.get("receiptUrl") || null,
+          notes: formData.get("notes") || null,
+          isShared,
+          allocations: isShared
+            ? allocations.map((a) => ({ unitId: a.unitId, percentage: a.percentage }))
+            : [],
         }),
       })
 
@@ -115,6 +161,10 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
       }
 
       setIsOpen(false)
+      setIsShared(false)
+      setAllocations([])
+      setSelectedPropertyId("")
+      setAmount("")
       router.refresh()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add expense")
@@ -123,8 +173,8 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
     }
   }
 
-  // Format today's date as YYYY-MM-DD for date input default
   const today = new Date().toISOString().split("T")[0]
+  const parsedAmount = parseFloat(amount) || 0
 
   return (
     <>
@@ -171,6 +221,8 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
                     step="0.01"
                     required
                     placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
                   />
                 </div>
 
@@ -214,6 +266,8 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
                   <select
                     id="propertyId"
                     name="propertyId"
+                    value={selectedPropertyId}
+                    onChange={handlePropertyChange}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <option value="">General / Company</option>
@@ -225,6 +279,70 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
                   </select>
                 </div>
               </div>
+
+              {/* Split across units checkbox — only shown when a property is selected */}
+              {selectedPropertyId && (
+                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
+                  <input
+                    type="checkbox"
+                    id="isShared"
+                    checked={isShared}
+                    onChange={(e) => setIsShared(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <Label htmlFor="isShared" className="text-sm text-blue-800 cursor-pointer mb-0">
+                    Split this expense across all units in this property
+                  </Label>
+                </div>
+              )}
+
+              {/* Allocation table */}
+              {isShared && allocations.length > 0 && (
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
+                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                      Unit Allocation
+                    </p>
+                  </div>
+                  <div className="divide-y divide-gray-100">
+                    {allocations.map((a) => (
+                      <div key={a.unitId} className="flex items-center gap-3 px-4 py-2.5">
+                        <span className="flex-1 text-sm text-gray-700">{a.unitName}</span>
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={a.percentage}
+                            onChange={(e) => handlePercentageChange(a.unitId, e.target.value)}
+                            className="w-20 h-8 text-sm text-right"
+                          />
+                          <span className="text-sm text-gray-500">%</span>
+                        </div>
+                        <span className="text-sm font-medium text-gray-700 w-28 text-right">
+                          {parsedAmount > 0
+                            ? formatCurrency((parsedAmount * a.percentage) / 100, currency)
+                            : "—"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between px-4 py-2 bg-gray-50 border-t border-gray-200">
+                    <span className="text-xs font-semibold text-gray-600">Total</span>
+                    <span
+                      className={`text-xs font-semibold ${
+                        allocationValid ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      {totalPct.toFixed(2)}% {!allocationValid && "(must equal 100%)"}
+                    </span>
+                    <span className="text-sm font-semibold text-gray-700 w-28 text-right">
+                      {parsedAmount > 0 ? formatCurrency(parsedAmount, currency) : "—"}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Maintenance Request */}
               <div className="space-y-2">
@@ -256,7 +374,7 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
                   name="description"
                   type="text"
                   required
-                  placeholder="e.g., Plumbing repair for Unit 2A"
+                  placeholder="e.g., Monthly generator fuel"
                 />
               </div>
 
@@ -267,7 +385,7 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
                   id="vendor"
                   name="vendor"
                   type="text"
-                  placeholder="e.g., ABC Plumbing Services"
+                  placeholder="e.g., ABC Fueling Services"
                 />
               </div>
 
@@ -313,7 +431,7 @@ export default function AddExpenseButton({ currency }: AddExpenseButtonProps) {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || (isShared && allocations.length > 0 && !allocationValid)}
                   className="bg-[#635bff] hover:bg-[#5348e8] text-white"
                 >
                   {isLoading ? "Adding..." : "Add Expense"}
