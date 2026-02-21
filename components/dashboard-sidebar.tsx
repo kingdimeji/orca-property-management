@@ -63,7 +63,7 @@ export function DashboardSidebar({ userName, userEmail, signOutAction }: Dashboa
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
-            <h1 className="text-2xl font-bold text-blue-600">Orca</h1>
+            <h1 className="text-2xl font-bold text-blue-600">Legde</h1>
             <button
               onClick={() => setSidebarOpen(false)}
               className="lg:hidden p-2 rounded-lg hover:bg-gray-100"
@@ -141,7 +141,7 @@ export function DashboardSidebar({ userName, userEmail, signOutAction }: Dashboa
         >
           <Menu className="w-6 h-6" />
         </button>
-        <h1 className="ml-4 text-xl font-bold text-blue-600">Orca</h1>
+        <h1 className="ml-4 text-xl font-bold text-blue-600">Legde</h1>
       </div>
     </>
   )

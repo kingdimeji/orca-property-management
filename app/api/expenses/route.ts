@@ -18,6 +18,7 @@ export async function POST(req: Request) {
       description,
       date,
       propertyId,
+      maintenanceRequestId,
       vendor,
       receiptUrl,
       notes,
@@ -53,6 +54,7 @@ export async function POST(req: Request) {
     }
 
     // If propertyId provided, verify user owns the property
+    let finalPropertyId = propertyId
     if (propertyId) {
       const property = await db.property.findUnique({
         where: { id: propertyId },
@@ -70,6 +72,39 @@ export async function POST(req: Request) {
       }
     }
 
+    // If maintenanceRequestId provided, verify user owns it and auto-set property
+    if (maintenanceRequestId) {
+      const maintenanceRequest = await db.maintenanceRequest.findFirst({
+        where: {
+          id: maintenanceRequestId,
+          unit: {
+            property: {
+              userId: session.user.id,
+            },
+          },
+        },
+        include: {
+          unit: {
+            include: {
+              property: true,
+            },
+          },
+        },
+      })
+
+      if (!maintenanceRequest) {
+        return NextResponse.json(
+          { message: "Maintenance request not found or access denied" },
+          { status: 404 }
+        )
+      }
+
+      // Auto-set propertyId from maintenance request if not already set
+      if (!finalPropertyId && maintenanceRequest.unit.property.id) {
+        finalPropertyId = maintenanceRequest.unit.property.id
+      }
+    }
+
     // Create expense
     const expense = await db.expense.create({
       data: {
@@ -77,7 +112,8 @@ export async function POST(req: Request) {
         category,
         description: description.trim(),
         date: new Date(date),
-        propertyId: propertyId || null,
+        propertyId: finalPropertyId || null,
+        maintenanceRequestId: maintenanceRequestId || null,
         vendor: vendor?.trim() || null,
         receiptUrl: receiptUrl?.trim() || null,
         notes: notes?.trim() || null,
@@ -85,6 +121,15 @@ export async function POST(req: Request) {
       },
       include: {
         property: true,
+        maintenanceRequest: {
+          include: {
+            unit: {
+              include: {
+                property: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -108,6 +153,7 @@ export async function GET(req: Request) {
 
     const { searchParams } = new URL(req.url)
     const propertyId = searchParams.get("propertyId")
+    const maintenanceRequestId = searchParams.get("maintenanceRequestId")
     const category = searchParams.get("category") as ExpenseCategory | null
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
@@ -119,6 +165,10 @@ export async function GET(req: Request) {
 
     if (propertyId) {
       where.propertyId = propertyId
+    }
+
+    if (maintenanceRequestId) {
+      where.maintenanceRequestId = maintenanceRequestId
     }
 
     if (category && Object.values(ExpenseCategory).includes(category)) {
@@ -141,6 +191,15 @@ export async function GET(req: Request) {
       orderBy: { date: "desc" },
       include: {
         property: true,
+        maintenanceRequest: {
+          include: {
+            unit: {
+              include: {
+                property: true,
+              },
+            },
+          },
+        },
       },
     })
 

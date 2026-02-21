@@ -7,11 +7,25 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import type { Property } from "@prisma/client"
-import type { ExpenseWithProperty } from "@/types/prisma"
+import type { ExpenseWithRelations } from "@/types/prisma"
 
 interface EditExpenseButtonProps {
-  expense: ExpenseWithProperty
+  expense: ExpenseWithRelations
   currency: string
+}
+
+type MaintenanceRequestWithUnit = {
+  id: string
+  title: string
+  status: string
+  unit: {
+    id: string
+    name: string
+    property: {
+      id: string
+      name: string
+    }
+  }
 }
 
 const EXPENSE_CATEGORIES = [
@@ -42,18 +56,30 @@ export default function EditExpenseButton({
 }: EditExpenseButtonProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isDataLoading, setIsDataLoading] = useState(false)
   const [error, setError] = useState("")
   const [properties, setProperties] = useState<Property[]>([])
+  const [maintenanceRequests, setMaintenanceRequests] = useState<MaintenanceRequestWithUnit[]>([])
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const router = useRouter()
 
-  // Fetch properties when modal opens
+  // Fetch properties and maintenance requests when modal opens
   useEffect(() => {
     if (isOpen) {
-      fetch("/api/properties")
-        .then((res) => res.json())
-        .then((data) => setProperties(data))
-        .catch((err) => console.error("Failed to load properties:", err))
+      setIsDataLoading(true)
+      Promise.all([
+        fetch("/api/properties").then((res) => res.json()),
+        fetch("/api/maintenance?status=OPEN,IN_PROGRESS").then((res) => res.json()),
+      ])
+        .then(([propertiesData, maintenanceData]) => {
+          setProperties(propertiesData)
+          setMaintenanceRequests(maintenanceData)
+          setIsDataLoading(false)
+        })
+        .catch((err) => {
+          console.error("Failed to load data:", err)
+          setIsDataLoading(false)
+        })
     }
   }, [isOpen])
 
@@ -68,6 +94,7 @@ export default function EditExpenseButton({
     const description = formData.get("description") as string
     const date = formData.get("date") as string
     const propertyId = formData.get("propertyId") as string
+    const maintenanceRequestId = formData.get("maintenanceRequestId") as string
     const vendor = formData.get("vendor") as string
     const receiptUrl = formData.get("receiptUrl") as string
     const notes = formData.get("notes") as string
@@ -84,6 +111,7 @@ export default function EditExpenseButton({
           description,
           date,
           propertyId: propertyId || null,
+          maintenanceRequestId: maintenanceRequestId || null,
           vendor: vendor || null,
           receiptUrl: receiptUrl || null,
           notes: notes || null,
@@ -263,6 +291,27 @@ export default function EditExpenseButton({
                       ))}
                     </select>
                   </div>
+                </div>
+
+                {/* Maintenance Request */}
+                <div className="space-y-2">
+                  <Label htmlFor="maintenanceRequestId">Maintenance Request (Optional)</Label>
+                  <select
+                    id="maintenanceRequestId"
+                    name="maintenanceRequestId"
+                    defaultValue={expense.maintenanceRequestId || ""}
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <option value="">None - General Expense</option>
+                    {maintenanceRequests.map((request) => (
+                      <option key={request.id} value={request.id}>
+                        {request.title} ({request.unit.property.name} - {request.unit.name})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500">
+                    Link this expense to a specific maintenance request for better tracking
+                  </p>
                 </div>
 
                 {/* Description */}

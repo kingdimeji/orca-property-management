@@ -1,6 +1,6 @@
 /**
  * Email Service using Resend
- * Handles all email notifications for Orca Property Management
+ * Handles all email notifications for Legde Property Management
  */
 
 import { Resend } from "resend"
@@ -11,7 +11,7 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 // Default sender email (must be verified domain in Resend)
 const FROM_EMAIL = process.env.EMAIL_FROM || "onboarding@resend.dev"
-const APP_NAME = "Orca Property Management"
+const APP_NAME = "Legde"
 const APP_URL = process.env.NEXTAUTH_URL || "http://localhost:3000"
 
 interface EmailOptions {
@@ -422,6 +422,82 @@ export async function sendMaintenanceStatusUpdateEmail(
   return sendEmail({
     to: tenantEmail,
     subject: `Maintenance Update: ${title} - ${newStatus.replace(/_/g, " ")}`,
+    html,
+  })
+}
+
+/**
+ * Send password reset email
+ */
+export async function sendPasswordResetEmail(
+  userEmail: string,
+  userName: string,
+  resetLink: string,
+  expiryDate: Date
+) {
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+
+  <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 40px 20px; text-align: center; border-radius: 8px 8px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px;">🔐 Password Reset Request</h1>
+  </div>
+
+  <div style="background: #ffffff; padding: 40px 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+    <h2 style="color: #1f2937; margin-top: 0;">Reset Your Password</h2>
+
+    <p style="color: #4b5563; font-size: 16px;">Hi ${userName},</p>
+
+    <p style="color: #4b5563; font-size: 16px;">
+      We received a request to reset your password for your ${APP_NAME} account. Click the button below to create a new password:
+    </p>
+
+    <div style="text-align: center; margin: 35px 0;">
+      <a href="${resetLink}" style="background: #8b5cf6; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; display: inline-block;">
+        Reset Password
+      </a>
+    </div>
+
+    <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; border-radius: 4px; margin: 20px 0;">
+      <p style="margin: 0; color: #92400e; font-size: 14px;">
+        <strong>⏰ This link expires in 1 hour</strong> (at ${expiryDate.toLocaleTimeString(
+          "en-US",
+          {
+            hour: "2-digit",
+            minute: "2-digit",
+          }
+        )})
+      </p>
+    </div>
+
+    <p style="color: #6b7280; font-size: 13px; margin-top: 20px;">
+      If the button doesn't work, copy and paste this link into your browser:<br>
+      <a href="${resetLink}" style="color: #8b5cf6; word-break: break-all;">${resetLink}</a>
+    </p>
+
+    <div style="background: #fef2f2; border-left: 4px solid #ef4444; padding: 15px; border-radius: 4px; margin: 30px 0;">
+      <p style="margin: 0; color: #991b1b; font-size: 14px;">
+        <strong>⚠️ Security Notice:</strong> If you didn't request this password reset, please ignore this email and ensure your account is secure. Your password will not be changed unless you click the link above.
+      </p>
+    </div>
+  </div>
+
+  <div style="text-align: center; margin-top: 30px; color: #9ca3af; font-size: 12px;">
+    <p>© ${new Date().getFullYear()} ${APP_NAME}. All rights reserved.</p>
+  </div>
+
+</body>
+</html>
+  `.trim()
+
+  return sendEmail({
+    to: userEmail,
+    subject: `Reset your ${APP_NAME} password`,
     html,
   })
 }

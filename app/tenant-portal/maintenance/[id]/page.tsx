@@ -16,11 +16,12 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { formatCurrency } from "@/lib/utils"
+import { LinkedExpensesSection } from "./linked-expenses-section"
 
 export default async function MaintenanceDetailPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
   const session = await auth()
 
@@ -28,9 +29,11 @@ export default async function MaintenanceDetailPage({
     redirect("/login")
   }
 
+  const { id } = await params
+
   // Get maintenance request
   const request = await db.maintenanceRequest.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       tenant: true,
       unit: {
@@ -265,6 +268,12 @@ export default async function MaintenanceDetailPage({
           </CardContent>
         </Card>
       )}
+
+      {/* Linked Expenses */}
+      <LinkedExpensesSection
+        maintenanceRequestId={request.id}
+        currency={session.user.currency}
+      />
 
       {/* Images */}
       {request.images && request.images.length > 0 && (

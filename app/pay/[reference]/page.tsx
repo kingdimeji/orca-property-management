@@ -132,7 +132,7 @@ export default async function PaymentPage({ params }: PaymentPageProps) {
             Rent Payment
           </CardTitle>
           <p className="text-sm text-gray-600 mt-2">
-            Secure payment powered by Orca Property Management
+            Secure payment powered by Legde
           </p>
         </CardHeader>
 
@@ -258,7 +258,7 @@ export default async function PaymentPage({ params }: PaymentPageProps) {
       {/* Footer */}
       <div className="absolute bottom-4 left-0 right-0 text-center">
         <p className="text-sm text-gray-500">
-          Powered by <span className="font-semibold">Orca Property Management</span>
+          Powered by <span className="font-semibold">Legde</span>
         </p>
       </div>
     </div>

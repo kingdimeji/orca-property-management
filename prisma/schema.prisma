@@ -1,4 +1,4 @@
-// Orca Property Management System - Database Schema
+// Legde Property Management System - Database Schema
 
 generator client {
   provider = "prisma-client-js"
@@ -20,6 +20,10 @@ model User {
   currency      String    @default("NGN") // NGN, GBP, NOK
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  // Password reset fields
+  resetToken        String?   // SHA-256 hashed token
+  resetTokenExpiry  DateTime? // 1 hour expiry
 
   // Landlord relations
   properties    Property[]
@@ -221,6 +225,9 @@ model Expense {
   propertyId    String?
   property      Property? @relation(fields: [propertyId], references: [id], onDelete: SetNull)
 
+  maintenanceRequestId  String?
+  maintenanceRequest    MaintenanceRequest? @relation(fields: [maintenanceRequestId], references: [id], onDelete: SetNull)
+
   userId        String
   user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -263,6 +270,9 @@ model MaintenanceRequest {
   // Track which tenant reported this request
   reportedBy    String?
   tenant        Tenant?   @relation(fields: [reportedBy], references: [id], onDelete: SetNull)
+
+  // Linked expenses for this maintenance request
+  expenses      Expense[]
 
   @@map("maintenance_requests")
 }

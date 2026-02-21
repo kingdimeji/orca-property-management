@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Receipt, TrendingDown, Tag, Calendar } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import type { ExpenseWithProperty } from "@/types/prisma"
+import type { ExpenseWithRelations } from "@/types/prisma"
 import AddExpenseButton from "./add-expense-button"
 import EditExpenseButton from "./edit-expense-button"
 import { ResponsiveTable } from "@/components/ui/responsive-table"
@@ -26,12 +26,21 @@ export default async function ExpensesPage() {
   }
 
   // Fetch all expenses for the user
-  const expenses: ExpenseWithProperty[] = await db.expense.findMany({
+  const expenses: ExpenseWithRelations[] = await db.expense.findMany({
     where: {
       userId: session.user.id,
     },
     include: {
       property: true,
+      maintenanceRequest: {
+        include: {
+          unit: {
+            include: {
+              property: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       date: "desc",
@@ -171,6 +180,7 @@ export default async function ExpensesPage() {
                 "Category",
                 "Description",
                 "Property",
+                "Maintenance Request",
                 "Vendor",
                 "Amount",
                 "Actions"
@@ -198,6 +208,17 @@ export default async function ExpensesPage() {
                     expense.property.name
                   ) : (
                     <span className="text-gray-400 italic">General</span>
+                  ),
+                  // Maintenance Request
+                  expense.maintenanceRequest ? (
+                    <div key="maintenance" className="text-sm">
+                      <div className="font-medium text-gray-900">{expense.maintenanceRequest.title}</div>
+                      <div className="text-xs text-gray-500">
+                        {expense.maintenanceRequest.unit.property.name} - {expense.maintenanceRequest.unit.name}
+                      </div>
+                    </div>
+                  ) : (
+                    <span key="maintenance" className="text-gray-400 italic text-sm">—</span>
                   ),
                   // Vendor
                   expense.vendor || <span className="text-gray-400 italic">—</span>,

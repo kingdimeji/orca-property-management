@@ -20,6 +20,15 @@ export async function GET(
       where: { id },
       include: {
         property: true,
+        maintenanceRequest: {
+          include: {
+            unit: {
+              include: {
+                property: true,
+              },
+            },
+          },
+        },
       },
     })
 
@@ -75,6 +84,7 @@ export async function PATCH(
       description,
       date,
       propertyId,
+      maintenanceRequestId,
       vendor,
       receiptUrl,
       notes,
@@ -110,6 +120,7 @@ export async function PATCH(
     }
 
     // If propertyId is being changed, verify user owns the new property
+    let finalPropertyId = propertyId
     if (propertyId && propertyId !== expense.propertyId) {
       const property = await db.property.findUnique({
         where: { id: propertyId },
@@ -127,6 +138,41 @@ export async function PATCH(
       }
     }
 
+    // If maintenanceRequestId is being changed, verify user owns it and auto-set property
+    if (maintenanceRequestId !== undefined && maintenanceRequestId !== expense.maintenanceRequestId) {
+      if (maintenanceRequestId) {
+        const maintenanceRequest = await db.maintenanceRequest.findFirst({
+          where: {
+            id: maintenanceRequestId,
+            unit: {
+              property: {
+                userId: session.user.id,
+              },
+            },
+          },
+          include: {
+            unit: {
+              include: {
+                property: true,
+              },
+            },
+          },
+        })
+
+        if (!maintenanceRequest) {
+          return NextResponse.json(
+            { message: "Maintenance request not found or access denied" },
+            { status: 404 }
+          )
+        }
+
+        // Auto-set propertyId from maintenance request if not already set
+        if (!finalPropertyId && maintenanceRequest.unit.property.id) {
+          finalPropertyId = maintenanceRequest.unit.property.id
+        }
+      }
+    }
+
     // Update expense (cannot change userId)
     const updated = await db.expense.update({
       where: { id },
@@ -135,13 +181,23 @@ export async function PATCH(
         category,
         description: description.trim(),
         date: new Date(date),
-        propertyId: propertyId || null,
+        propertyId: finalPropertyId !== undefined ? (finalPropertyId || null) : undefined,
+        maintenanceRequestId: maintenanceRequestId !== undefined ? (maintenanceRequestId || null) : undefined,
         vendor: vendor?.trim() || null,
         receiptUrl: receiptUrl?.trim() || null,
         notes: notes?.trim() || null,
       },
       include: {
         property: true,
+        maintenanceRequest: {
+          include: {
+            unit: {
+              include: {
+                property: true,
+              },
+            },
+          },
+        },
       },
     })
 

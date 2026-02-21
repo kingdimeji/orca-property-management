@@ -55,7 +55,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-2 text-center">
           <CardTitle className="text-3xl">
-            Welcome to Orca
+            Welcome to Legde
           </CardTitle>
           <CardDescription>
             Enter your credentials to access your account
@@ -77,9 +77,15 @@ export default function LoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="password">
-                Password
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="password">Password</label>
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-[#635bff] hover:text-[#0a2540] font-semibold transition-colors"
+                >
+                  Forgot password?
+                </Link>
+              </div>
               <Input
                 id="password"
                 name="password"

@@ -70,6 +70,25 @@ export type ExpenseWithProperty = Prisma.ExpenseGetPayload<{
 }>
 
 /**
+ * Expense with all relations (property and maintenance request)
+ * Used in: api/expenses/route.ts, api/expenses/[id]/route.ts, expenses/page.tsx
+ */
+export type ExpenseWithRelations = Prisma.ExpenseGetPayload<{
+  include: {
+    property: true
+    maintenanceRequest: {
+      include: {
+        unit: {
+          include: {
+            property: true
+          }
+        }
+      }
+    }
+  }
+}>
+
+/**
  * Lease with payments ordered by due date
  * Used in: payment-related components
  */
