@@ -1,6 +1,6 @@
 # Deployment Guide
 
-This guide will help you deploy Orca Property Management to production using Vercel.
+This guide will help you deploy Legde Property Management to production using Vercel.
 
 ## Prerequisites
 
@@ -111,22 +111,29 @@ Choose one of these options:
 
 ## Step 4: Run Database Migrations
 
-After deployment, you need to run Prisma migrations on your production database:
+We use **Supabase SQL Editor** to apply migrations. The `DATABASE_URL` uses the Transaction Mode pooler (port 6543) which does not support `prisma migrate deploy`, so all migrations are applied manually via the Supabase dashboard.
 
-1. Set the production `DATABASE_URL` locally (temporarily):
-   ```bash
-   export DATABASE_URL="your-production-database-url"
-   ```
+### How to apply a migration
 
-2. Run migrations:
-   ```bash
-   npx prisma migrate deploy
-   ```
+1. Open your migration file in `prisma/migrations/<timestamp>_<name>/migration.sql`
+2. Go to [Supabase Dashboard](https://supabase.com/dashboard) → your project → **SQL Editor**
+3. Paste the SQL from the migration file and click **Run**
+4. Verify no errors were returned
 
-3. Verify the schema:
-   ```bash
-   npx prisma db push
-   ```
+### Current pending migration SQL (for reference)
+
+When schema changes are made, a migration file is created manually in `prisma/migrations/`. Copy and run the contents in the Supabase SQL Editor.
+
+**Example — adding nullable columns and a foreign key:**
+```sql
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "resetToken" TEXT;
+ALTER TABLE "users" ADD COLUMN IF NOT EXISTS "resetTokenExpiry" TIMESTAMP(3);
+ALTER TABLE "expenses" ADD COLUMN IF NOT EXISTS "maintenanceRequestId" TEXT;
+ALTER TABLE "expenses" ADD CONSTRAINT "expenses_maintenanceRequestId_fkey"
+  FOREIGN KEY ("maintenanceRequestId") REFERENCES "maintenance_requests"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+```
+
+> **Note:** Always use `IF NOT EXISTS` / `IF NOT EXISTS` guards when writing migration SQL to make it safe to re-run.
 
 ## Step 5: Verify Deployment
 
@@ -143,6 +150,26 @@ After deployment, you need to run Prisma migrations on your production database:
 | `NEXTAUTH_URL` | Your production URL | `https://orca.vercel.app` |
 | `NEXTAUTH_SECRET` | Secret key for NextAuth (min 32 chars) | Generate with `openssl rand -base64 32` |
 | `NODE_ENV` | Environment mode | `production` |
+
+## What to Exclude from Deployment Commits
+
+The following files and folders should **never** be committed when deploying:
+
+| Path | Reason |
+|------|--------|
+| `Design Revamp/` | Design assets and mockups — not part of the app |
+| `check_migration.sql` | Temporary SQL debug scripts |
+| `.env` / `.env.local` | Contains secrets — never commit |
+| `*.log` | Local log files |
+
+When staging files for a commit, add only app code explicitly. Do not use `git add .` or `git add -A` as this may accidentally include the above.
+
+**Safe staging pattern:**
+```bash
+git add app/ components/ lib/ prisma/ types/ public/ package.json
+# Then verify with:
+git status
+```
 
 ## Continuous Deployment
 
@@ -203,7 +230,4 @@ After successful deployment:
 
 URL: https://orca-property-management.vercel.app
 Database: Supabase PostgreSQL (pooled connection)
-Auto-deploy: Enabled via GitHub integration 
-
-
-Fedamchaina.1
+Auto-deploy: Enabled via GitHub integration
