@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Receipt } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
@@ -97,7 +97,7 @@ export function LinkedExpensesSection({
               >
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <Badge variant={expense.category.toLowerCase()}>
+                    <Badge variant={expense.category.toLowerCase() as React.ComponentProps<typeof Badge>["variant"]}>
                       {formatCategory(expense.category)}
                     </Badge>
                     <span className="text-xs text-gray-500">
