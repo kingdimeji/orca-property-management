@@ -10,9 +10,11 @@ import {
   Clock,
   Download,
 } from "lucide-react"
-import { formatCurrency } from "@/lib/utils"
-import { formatPaymentType, getPaymentTypeBadgeColor } from "@/lib/payment-utils"
+import { formatCurrency, formatDate } from "@/lib/utils"
+import { formatPaymentType } from "@/lib/payment-utils"
 import { PayNowButton } from "./pay-now-button"
+import { ResponsiveTable } from "@/components/ui/responsive-table"
+import { Badge } from "@/components/ui/badge"
 
 export default async function TenantPaymentsPage() {
   const session = await auth()
@@ -172,114 +174,71 @@ export default async function TenantPaymentsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
-                      Due Date
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
-                      Paid Date
-                    </th>
-                    <th className="text-left py-3 px-4 text-sm font-medium text-gray-600">
-                      Type
-                    </th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-gray-600">
-                      Amount
-                    </th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-gray-600">
-                      Late Fee
-                    </th>
-                    <th className="text-right py-3 px-4 text-sm font-medium text-gray-600">
-                      Total
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-gray-600">
-                      Status
-                    </th>
-                    <th className="text-center py-3 px-4 text-sm font-medium text-gray-600">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {payments.map((payment) => (
-                    <tr
-                      key={payment.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
+            <ResponsiveTable
+              headers={[
+                "Due Date",
+                "Paid Date",
+                "Type",
+                "Amount",
+                "Late Fee",
+                "Total",
+                "Status",
+                "Actions"
+              ]}
+              rows={payments.map((payment) => ({
+                key: payment.id,
+                cells: [
+                  // Due Date
+                  formatDate(payment.dueDate),
+                  // Paid Date
+                  payment.paidDate ? (
+                    formatDate(payment.paidDate)
+                  ) : (
+                    <span className="text-gray-400 italic">Not paid</span>
+                  ),
+                  // Type
+                  <Badge key="type" variant={payment.paymentType.toLowerCase() as any}>
+                    {formatPaymentType(payment.paymentType)}
+                  </Badge>,
+                  // Amount
+                  <span key="amount" className="font-medium text-gray-900">
+                    {formatCurrency(payment.amount, session.user.currency)}
+                  </span>,
+                  // Late Fee
+                  payment.lateFee > 0 ? (
+                    <span className="font-medium text-red-600">
+                      {formatCurrency(payment.lateFee, session.user.currency)}
+                    </span>
+                  ) : (
+                    <span className="text-gray-400 italic">—</span>
+                  ),
+                  // Total
+                  <span key="total" className="font-bold text-gray-900">
+                    {formatCurrency(payment.amount + payment.lateFee, session.user.currency)}
+                  </span>,
+                  // Status
+                  <Badge key="status" variant={payment.status.toLowerCase() as any}>
+                    {payment.status}
+                  </Badge>,
+                  // Actions
+                  payment.status === "PAID" && payment.receiptUrl ? (
+                    <a
+                      href={payment.receiptUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700"
                     >
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm text-gray-900">
-                            {new Date(payment.dueDate).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 px-4 text-sm text-gray-900">
-                        {payment.paidDate
-                          ? new Date(payment.paidDate).toLocaleDateString()
-                          : "-"}
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className={`inline-block px-2 py-1 text-xs font-medium rounded-full ${getPaymentTypeBadgeColor(payment.paymentType)}`}>
-                          {formatPaymentType(payment.paymentType)}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-right text-sm font-medium text-gray-900">
-                        {formatCurrency(payment.amount, session.user.currency)}
-                      </td>
-                      <td className="py-4 px-4 text-right text-sm font-medium text-red-600">
-                        {payment.lateFee > 0
-                          ? formatCurrency(payment.lateFee, session.user.currency)
-                          : "-"}
-                      </td>
-                      <td className="py-4 px-4 text-right text-sm font-bold text-gray-900">
-                        {formatCurrency(
-                          payment.amount + payment.lateFee,
-                          session.user.currency
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        <span
-                          className={`inline-block px-3 py-1 text-xs font-semibold rounded-full ${
-                            payment.status === "PAID"
-                              ? "bg-green-100 text-green-800"
-                              : payment.status === "OVERDUE"
-                              ? "bg-red-100 text-red-800"
-                              : payment.status === "PENDING"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : payment.status === "PARTIAL"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-gray-100 text-gray-800"
-                          }`}
-                        >
-                          {payment.status}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-center">
-                        {payment.status === "PAID" && payment.receiptUrl ? (
-                          <a
-                            href={payment.receiptUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 text-sm text-teal-600 hover:text-teal-700"
-                          >
-                            <Download className="w-4 h-4" />
-                            Receipt
-                          </a>
-                        ) : payment.status === "PENDING" ||
-                          payment.status === "OVERDUE" ? (
-                          <PayNowButton paymentId={payment.id} />
-                        ) : (
-                          <span className="text-sm text-gray-400">-</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      <Download className="w-4 h-4" />
+                      Receipt
+                    </a>
+                  ) : payment.status === "PENDING" || payment.status === "OVERDUE" ? (
+                    <PayNowButton paymentId={payment.id} />
+                  ) : (
+                    <span className="text-sm text-gray-400">—</span>
+                  )
+                ]
+              }))}
+            />
           )}
         </CardContent>
       </Card>

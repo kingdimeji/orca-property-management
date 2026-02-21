@@ -3,9 +3,11 @@
 import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
-import { formatPaymentType, getPaymentTypeBadgeColor } from "@/lib/payment-utils"
+import { formatPaymentType } from "@/lib/payment-utils"
 import { DollarSign } from "lucide-react"
 import type { Payment } from "@prisma/client"
+import { ResponsiveTable } from "@/components/ui/responsive-table"
+import { Badge } from "@/components/ui/badge"
 
 interface IncomeBreakdownTableProps {
   payments: Payment[]
@@ -59,79 +61,63 @@ export default function IncomeBreakdownTable({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-medium text-gray-600">
-                  Payment Type
-                </th>
-                <th className="text-center py-3 px-4 font-medium text-gray-600">
-                  Count
-                </th>
-                <th className="text-right py-3 px-4 font-medium text-gray-600">
-                  Amount
-                </th>
-                <th className="text-right py-3 px-4 font-medium text-gray-600">
-                  % of Total
-                </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-600">
-                  Visual
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedTypes.map(([type, data]) => {
-                const percentage =
-                  totalIncome > 0 ? (data.total / totalIncome) * 100 : 0
+        <ResponsiveTable
+          headers={["Payment Type", "Count", "Amount", "% of Total", "Visual"]}
+          rows={sortedTypes.map(([type, data]) => {
+            const percentage = totalIncome > 0 ? (data.total / totalIncome) * 100 : 0
 
-                return (
-                  <tr
-                    key={type}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                    <td className="py-4 px-4">
-                      <span
-                        className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getPaymentTypeBadgeColor(type)}`}
-                      >
-                        {formatPaymentType(type)}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-center text-gray-700">
-                      {data.count}
-                    </td>
-                    <td className="py-4 px-4 text-right font-medium text-green-600">
-                      {formatCurrency(data.total, currency)}
-                    </td>
-                    <td className="py-4 px-4 text-right text-gray-900">
-                      {percentage.toFixed(1)}%
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-green-600 h-2 rounded-full transition-all"
-                          style={{ width: `${Math.min(percentage, 100)}%` }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-gray-200 font-semibold">
-                <td className="py-4 px-4 text-gray-900">Total</td>
-                <td className="py-4 px-4 text-center text-gray-700">
-                  {sortedTypes.reduce((sum, [, data]) => sum + data.count, 0)}
-                </td>
-                <td className="py-4 px-4 text-right text-green-600">
-                  {formatCurrency(totalIncome, currency)}
-                </td>
-                <td className="py-4 px-4 text-right text-gray-900">100%</td>
-                <td className="py-4 px-4"></td>
-              </tr>
-            </tfoot>
-          </table>
+            return {
+              key: type,
+              cells: [
+                // Payment Type
+                <Badge key="type" variant={type.toLowerCase() as any}>
+                  {formatPaymentType(type)}
+                </Badge>,
+                // Count
+                <span key="count" className="text-gray-700">{data.count}</span>,
+                // Amount
+                <span key="amount" className="font-medium text-green-600">
+                  {formatCurrency(data.total, currency)}
+                </span>,
+                // % of Total
+                <span key="percentage" className="text-gray-900">{percentage.toFixed(1)}%</span>,
+                // Visual
+                <div key="visual" className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-green-600 h-2 rounded-full transition-all"
+                    style={{ width: `${Math.min(percentage, 100)}%` }}
+                  />
+                </div>
+              ]
+            }
+          })}
+        />
+
+        {/* Total Row */}
+        <div className="mt-4 pt-4 border-t-2 border-gray-200 font-semibold">
+          <div className="hidden md:flex justify-between px-4">
+            <span className="text-gray-900 flex-1">Total</span>
+            <span className="text-gray-700 text-center w-20">
+              {sortedTypes.reduce((sum, [, data]) => sum + data.count, 0)}
+            </span>
+            <span className="text-green-600 text-right w-32">
+              {formatCurrency(totalIncome, currency)}
+            </span>
+            <span className="text-gray-900 text-right w-24">100%</span>
+            <span className="w-32"></span>
+          </div>
+          <div className="md:hidden space-y-2 px-4">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Total Count</span>
+              <span className="text-gray-900">
+                {sortedTypes.reduce((sum, [, data]) => sum + data.count, 0)}
+              </span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-gray-600">Total Amount</span>
+              <span className="text-green-600">{formatCurrency(totalIncome, currency)}</span>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

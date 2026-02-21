@@ -4,6 +4,8 @@ import { useMemo } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatCurrency } from "@/lib/utils"
 import { Tag } from "lucide-react"
+import { ResponsiveTable } from "@/components/ui/responsive-table"
+import { Badge } from "@/components/ui/badge"
 
 interface ExpenseBreakdownTableProps {
   expensesByCategory: Record<string, number>
@@ -42,68 +44,52 @@ export default function ExpenseBreakdownTable({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-medium text-gray-600">
-                  Category
-                </th>
-                <th className="text-right py-3 px-4 font-medium text-gray-600">
-                  Amount
-                </th>
-                <th className="text-right py-3 px-4 font-medium text-gray-600">
-                  % of Total
-                </th>
-                <th className="text-left py-3 px-4 font-medium text-gray-600">
-                  Visual
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedCategories.map(([category, amount]) => {
-                const percentage =
-                  totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0
+        <ResponsiveTable
+          headers={["Category", "Amount", "% of Total", "Visual"]}
+          rows={sortedCategories.map(([category, amount]) => {
+            const percentage = totalExpenses > 0 ? (amount / totalExpenses) * 100 : 0
 
-                return (
-                  <tr
-                    key={category}
-                    className="border-b border-gray-100 hover:bg-gray-50"
-                  >
-                    <td className="py-4 px-4">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                        {formatCategory(category)}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4 text-right font-medium text-red-600">
-                      {formatCurrency(amount, currency)}
-                    </td>
-                    <td className="py-4 px-4 text-right text-gray-900">
-                      {percentage.toFixed(1)}%
-                    </td>
-                    <td className="py-4 px-4">
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div
-                          className="bg-purple-600 h-2 rounded-full transition-all"
-                          style={{ width: `${Math.min(percentage, 100)}%` }}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                )
-              })}
-            </tbody>
-            <tfoot>
-              <tr className="border-t-2 border-gray-200 font-semibold">
-                <td className="py-4 px-4 text-gray-900">Total</td>
-                <td className="py-4 px-4 text-right text-red-600">
-                  {formatCurrency(totalExpenses, currency)}
-                </td>
-                <td className="py-4 px-4 text-right text-gray-900">100%</td>
-                <td className="py-4 px-4"></td>
-              </tr>
-            </tfoot>
-          </table>
+            return {
+              key: category,
+              cells: [
+                // Category
+                <Badge key="category" variant="default" className="bg-purple-100 text-purple-700 border-purple-200">
+                  {formatCategory(category)}
+                </Badge>,
+                // Amount
+                <span key="amount" className="font-medium text-red-600">
+                  {formatCurrency(amount, currency)}
+                </span>,
+                // % of Total
+                <span key="percentage" className="text-gray-900">{percentage.toFixed(1)}%</span>,
+                // Visual
+                <div key="visual" className="w-full bg-gray-200 rounded-full h-2">
+                  <div
+                    className="bg-purple-600 h-2 rounded-full transition-all"
+                    style={{ width: `${Math.min(percentage, 100)}%` }}
+                  />
+                </div>
+              ]
+            }
+          })}
+        />
+
+        {/* Total Row */}
+        <div className="mt-4 pt-4 border-t-2 border-gray-200 font-semibold">
+          <div className="hidden md:flex justify-between px-4">
+            <span className="text-gray-900 flex-1">Total</span>
+            <span className="text-red-600 text-right w-32">
+              {formatCurrency(totalExpenses, currency)}
+            </span>
+            <span className="text-gray-900 text-right w-24">100%</span>
+            <span className="w-32"></span>
+          </div>
+          <div className="md:hidden space-y-2 px-4">
+            <div className="flex justify-between">
+              <span className="text-gray-600">Total Amount</span>
+              <span className="text-red-600">{formatCurrency(totalExpenses, currency)}</span>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

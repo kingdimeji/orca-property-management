@@ -28,10 +28,12 @@
 
   /* Borders and shadows */
   --border-color: #e3e8ef;
-  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  /* Soft, modern elevation shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.02);
+  --shadow: 0 2px 8px 0 rgb(0 0 0 / 0.04), 0 1px 2px 0 rgb(0 0 0 / 0.02);
+  --shadow-md: 0 8px 20px -4px rgb(0 0 0 / 0.06), 0 2px 6px -2px rgb(0 0 0 / 0.03);
+  --shadow-lg: 0 16px 32px -8px rgb(0 0 0 / 0.08), 0 4px 12px -4px rgb(0 0 0 / 0.04);
+  --shadow-xl: 0 24px 48px -12px rgb(0 0 0 / 0.12), 0 8px 16px -8px rgb(0 0 0 / 0.06);
 }
 
 @theme inline {
@@ -56,7 +58,12 @@ body {
 
 /* Smooth transitions for interactive elements */
 button, a, input, select, textarea {
-  transition: all 0.15s ease-in-out;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Subtle hover scale for buttons */
+button:not(:disabled):hover {
+  transform: scale(1.01);
 }
 
 /* Focus styles */

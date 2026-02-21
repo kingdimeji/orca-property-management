@@ -7,6 +7,8 @@ import { formatCurrency, formatDate } from "@/lib/utils"
 import type { ExpenseWithProperty } from "@/types/prisma"
 import AddExpenseButton from "./add-expense-button"
 import EditExpenseButton from "./edit-expense-button"
+import { ResponsiveTable } from "@/components/ui/responsive-table"
+import { Badge } from "@/components/ui/badge"
 
 // Format category names for display
 function formatCategory(category: string): string {
@@ -163,83 +165,55 @@ export default async function ExpensesPage() {
               <AddExpenseButton currency={session.user.currency} />
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Date
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Category
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Description
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Property
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Vendor
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Amount
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {expenses.map((expense) => (
-                    <tr
-                      key={expense.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-4 px-4 text-gray-900">
-                        {formatDate(expense.date)}
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                          {formatCategory(expense.category)}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="text-gray-900">{expense.description}</div>
-                        {expense.notes && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            {expense.notes}
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-gray-900">
-                        {expense.property ? (
-                          expense.property.name
-                        ) : (
-                          <span className="text-gray-400 italic">
-                            General
-                          </span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-gray-600">
-                        {expense.vendor || (
-                          <span className="text-gray-400 italic">—</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 font-medium text-red-600">
-                        {formatCurrency(expense.amount, session.user.currency)}
-                      </td>
-                      <td className="py-4 px-4">
-                        <EditExpenseButton
-                          expense={expense}
-                          currency={session.user.currency}
-                        />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ResponsiveTable
+              headers={[
+                "Date",
+                "Category",
+                "Description",
+                "Property",
+                "Vendor",
+                "Amount",
+                "Actions"
+              ]}
+              rows={expenses.map((expense) => ({
+                key: expense.id,
+                cells: [
+                  // Date
+                  formatDate(expense.date),
+                  // Category
+                  <Badge key="category" variant="default" className="bg-purple-100 text-purple-700 border-purple-200">
+                    {formatCategory(expense.category)}
+                  </Badge>,
+                  // Description
+                  <div key="description">
+                    <div className="text-gray-900">{expense.description}</div>
+                    {expense.notes && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {expense.notes}
+                      </div>
+                    )}
+                  </div>,
+                  // Property
+                  expense.property ? (
+                    expense.property.name
+                  ) : (
+                    <span className="text-gray-400 italic">General</span>
+                  ),
+                  // Vendor
+                  expense.vendor || <span className="text-gray-400 italic">—</span>,
+                  // Amount
+                  <span key="amount" className="font-medium text-red-600">
+                    {formatCurrency(expense.amount, session.user.currency)}
+                  </span>,
+                  // Actions
+                  <EditExpenseButton
+                    key="actions"
+                    expense={expense}
+                    currency={session.user.currency}
+                  />
+                ]
+              }))}
+            />
           )}
         </CardContent>
       </Card>

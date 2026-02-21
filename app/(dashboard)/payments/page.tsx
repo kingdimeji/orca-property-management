@@ -4,7 +4,9 @@ import { redirect } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DollarSign, TrendingUp, AlertCircle, CheckCircle } from "lucide-react"
 import { formatCurrency, formatDate } from "@/lib/utils"
-import { formatPaymentType, getPaymentTypeBadgeColor } from "@/lib/payment-utils"
+import { formatPaymentType } from "@/lib/payment-utils"
+import { Badge } from "@/components/ui/badge"
+import { ResponsiveTable } from "@/components/ui/responsive-table"
 
 export default async function PaymentsPage() {
   const session = await auth()
@@ -63,26 +65,6 @@ export default async function PaymentsPage() {
     (sum, p) => sum + p.amount + p.lateFee,
     0
   )
-
-  function getStatusBadge(status: string) {
-    const styles = {
-      PAID: "bg-green-100 text-green-700",
-      PENDING: "bg-yellow-100 text-yellow-700",
-      OVERDUE: "bg-red-100 text-red-700",
-      PARTIAL: "bg-blue-100 text-blue-700",
-      CANCELLED: "bg-gray-100 text-gray-700",
-    }
-
-    return (
-      <span
-        className={`px-2 py-1 text-xs font-medium rounded-full ${
-          styles[status as keyof typeof styles] || styles.PENDING
-        }`}
-      >
-        {status}
-      </span>
-    )
-  }
 
   return (
     <div>
@@ -173,96 +155,70 @@ export default async function PaymentsPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Tenant
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Property / Unit
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Type
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Due Date
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Amount
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Paid Date
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Status
-                    </th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-600">
-                      Method
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {userPayments.map((payment) => (
-                    <tr
-                      key={payment.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-4 px-4">
-                        <div className="font-medium text-gray-900">
-                          {payment.lease.tenant.firstName}{" "}
-                          {payment.lease.tenant.lastName}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {payment.lease.tenant.email}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="text-gray-900">
-                          {payment.lease.unit.property.name}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                          {payment.lease.unit.name}
-                        </div>
-                      </td>
-                      <td className="py-4 px-4">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${getPaymentTypeBadgeColor(payment.paymentType)}`}>
-                          {formatPaymentType(payment.paymentType)}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4 text-gray-900">
-                        {formatDate(payment.dueDate)}
-                      </td>
-                      <td className="py-4 px-4">
-                        <div className="font-medium text-gray-900">
-                          {formatCurrency(payment.amount, session.user.currency)}
-                        </div>
-                        {payment.lateFee > 0 && (
-                          <div className="text-xs text-red-600">
-                            +{formatCurrency(payment.lateFee, session.user.currency)}{" "}
-                            late fee
-                          </div>
-                        )}
-                      </td>
-                      <td className="py-4 px-4 text-gray-900">
-                        {payment.paidDate ? (
-                          formatDate(payment.paidDate)
-                        ) : (
-                          <span className="text-gray-400 italic">Not paid</span>
-                        )}
-                      </td>
-                      <td className="py-4 px-4">{getStatusBadge(payment.status)}</td>
-                      <td className="py-4 px-4 text-gray-600">
-                        {payment.paymentMethod || (
-                          <span className="text-gray-400 italic">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <ResponsiveTable
+              headers={[
+                "Tenant",
+                "Property/Unit",
+                "Type",
+                "Due Date",
+                "Amount",
+                "Paid Date",
+                "Status",
+                "Method"
+              ]}
+              rows={userPayments.map((payment) => ({
+                key: payment.id,
+                cells: [
+                  // Tenant
+                  <div key="tenant">
+                    <div className="font-medium text-gray-900">
+                      {payment.lease.tenant.firstName} {payment.lease.tenant.lastName}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {payment.lease.tenant.email}
+                    </div>
+                  </div>,
+                  // Property/Unit
+                  <div key="property">
+                    <div className="text-gray-900">
+                      {payment.lease.unit.property.name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {payment.lease.unit.name}
+                    </div>
+                  </div>,
+                  // Type
+                  <Badge key="type" variant={payment.paymentType.toLowerCase() as any}>
+                    {formatPaymentType(payment.paymentType)}
+                  </Badge>,
+                  // Due Date
+                  formatDate(payment.dueDate),
+                  // Amount
+                  <div key="amount">
+                    <div className="font-medium text-gray-900">
+                      {formatCurrency(payment.amount, session.user.currency)}
+                    </div>
+                    {payment.lateFee > 0 && (
+                      <div className="text-xs text-red-600">
+                        +{formatCurrency(payment.lateFee, session.user.currency)} late fee
+                      </div>
+                    )}
+                  </div>,
+                  // Paid Date
+                  payment.paidDate ? (
+                    formatDate(payment.paidDate)
+                  ) : (
+                    <span className="text-gray-400 italic">Not paid</span>
+                  ),
+                  // Status
+                  <Badge key="status" variant={payment.status.toLowerCase() as any}>
+                    {payment.status}
+                  </Badge>,
+                  // Method
+                  payment.paymentMethod || <span className="text-gray-400 italic">—</span>
+                ]
+              }))}
+            />
           )}
         </CardContent>
       </Card>

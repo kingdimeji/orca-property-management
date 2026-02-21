@@ -128,4 +128,5 @@ export interface StatCard {
   value: string
   icon: React.ComponentType<{ className?: string }>
   color: string
+  trend: number // Percentage change (e.g., 5.2 for +5.2%)
 }

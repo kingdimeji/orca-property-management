@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Building2, Users, DollarSign, AlertCircle } from "lucide-react"
 import { formatCurrency } from "@/lib/utils"
 import type { StatCard } from "@/types/prisma"
+import { TrendIndicator } from "@/components/ui/trend-indicator"
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -54,30 +55,101 @@ export default async function DashboardPage() {
 
   const pendingPayments = payments.filter((p: { status: string; amount: number }) => p.status === "PENDING" || p.status === "OVERDUE").length
 
+  // Calculate 30-day-ago data for trends
+  const thirtyDaysAgo = new Date()
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+  const sixtyDaysAgo = new Date()
+  sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60)
+
+  const [propertiesLastMonth, tenantsLastMonth, paymentsLastMonth] = await Promise.all([
+    db.property.count({
+      where: {
+        userId: session.user.id,
+        createdAt: { lte: thirtyDaysAgo }
+      },
+    }),
+    db.tenant.count({
+      where: {
+        leases: {
+          some: {
+            unit: {
+              property: {
+                userId: session.user.id,
+              },
+            },
+            status: "ACTIVE",
+            startDate: { lte: thirtyDaysAgo }
+          },
+        },
+      },
+    }),
+    db.payment.findMany({
+      where: {
+        lease: {
+          unit: {
+            property: {
+              userId: session.user.id,
+            },
+          },
+        },
+        paidDate: {
+          gte: sixtyDaysAgo,
+          lte: thirtyDaysAgo
+        },
+        status: "PAID"
+      },
+      select: {
+        amount: true,
+        status: true,
+      },
+    }),
+  ])
+
+  const revenueLastMonth = paymentsLastMonth.reduce((sum, p) => sum + p.amount, 0)
+  const pendingLastMonth = paymentsLastMonth.filter(p => p.status === "PENDING" || p.status === "OVERDUE").length
+
+  // Calculate percentage changes
+  const propertyTrend = propertiesLastMonth === 0 ? (properties > 0 ? 100 : 0) :
+    ((properties - propertiesLastMonth) / propertiesLastMonth) * 100
+
+  const tenantTrend = tenantsLastMonth === 0 ? (tenants > 0 ? 100 : 0) :
+    ((tenants - tenantsLastMonth) / tenantsLastMonth) * 100
+
+  const revenueTrend = revenueLastMonth === 0 ? (totalRevenue > 0 ? 100 : 0) :
+    ((totalRevenue - revenueLastMonth) / revenueLastMonth) * 100
+
+  // Pending payments trend (inverted: lower is better)
+  const pendingTrend = pendingLastMonth === 0 ? (pendingPayments > 0 ? -100 : 0) :
+    -((pendingPayments - pendingLastMonth) / pendingLastMonth) * 100
+
   const stats: StatCard[] = [
     {
       name: "Total Properties",
       value: properties.toString(),
       icon: Building2,
       color: "bg-blue-500",
+      trend: propertyTrend,
     },
     {
       name: "Active Tenants",
       value: tenants.toString(),
       icon: Users,
       color: "bg-green-500",
+      trend: tenantTrend,
     },
     {
       name: "Total Revenue",
       value: formatCurrency(totalRevenue, session.user.currency),
       icon: DollarSign,
       color: "bg-purple-500",
+      trend: revenueTrend,
     },
     {
       name: "Pending Payments",
       value: pendingPayments.toString(),
       icon: AlertCircle,
       color: "bg-orange-500",
+      trend: pendingTrend,
     },
   ]
 
@@ -102,12 +174,13 @@ export default async function DashboardPage() {
                 <CardTitle className="text-sm font-medium text-gray-600">
                   {stat.name}
                 </CardTitle>
-                <div className={`p-2 rounded-lg ${stat.color} bg-opacity-10`}>
+                <div className={`p-2 rounded-xl ${stat.color} bg-opacity-10`}>
                   <Icon className={`w-4 h-4 ${stat.color.replace('bg-', 'text-')}`} />
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
+                <div className="text-3xl font-bold mb-2">{stat.value}</div>
+                <TrendIndicator value={stat.trend} label="vs last month" />
               </CardContent>
             </Card>
           )
